@@ -7,6 +7,8 @@
 #include "device.h"
 #include "gameObject.h"
 #include "renderer.h"
+#include "camera.h"
+#include "renderManager.h"
 
 class Engine {
 public:
@@ -26,11 +28,16 @@ private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };
 	Renderer renderer{ window, device };
+	RenderManager renderManager{ device, renderer.getSwapChainRenderPass() };
+    Camera camera{};
 
 
 	void loadGameObjects();
 
 	void initPython();
 	void runPythonScript(std::string scriptname, std::string methodname, std::vector<std::string> args);
+
+	void update();
+	void render();
 };
 

@@ -302,52 +302,70 @@ void Engine::initPython() {
 	runPythonScript("startup", "startup");
 }
 
+void Engine::render() {
+	glfwPollEvents();
+	if (auto commandBuffer = renderer.beginFrame()) {
+		renderer.beginSwapChainRenderPass(commandBuffer);
+		renderManager.renderGameObjects(commandBuffer, gameObjects, camera);
+		renderer.endSwapChainRenderPass(commandBuffer);
+		renderer.endFrame();
+	}
+}
+
+void Engine::update() {
+	camera.setProjection(glm::radians(45.f),  renderer.getAspectRatio(), 0.1f, 10.f);
+	if (InputManager::keys[GLFW_KEY_W]) {
+		camera.moveCamForward(.05f);
+	}
+	if (InputManager::keys[GLFW_KEY_S]) {
+		camera.moveCamBack(.05f);
+	}
+	if (InputManager::keys[GLFW_KEY_A]) {
+		camera.moveCamLeft(.05f);
+	}
+	if (InputManager::keys[GLFW_KEY_D]) {
+		camera.moveCamRight(.05f);
+	}
+	camera.rotateCamera(InputManager::xoffset, InputManager::yoffset, 0.1f);
+	InputManager::xoffset = 0;
+	InputManager::yoffset = 0;
+}
 
 void Engine::run() {   
 	initPython();
-	RenderManager renderManager{ device, renderer.getSwapChainRenderPass() };
-    Camera camera{};
 
 	//starting values for camera
 	InputManager::xoffset = 0;
 	InputManager::yoffset = 0;
 	camera.rotateCamera(-90, 0, 1);
+
+	double lastTime = glfwGetTime(), timer = lastTime;
+	double deltaTime = 0, nowTime = 0;
+	int frames = 0, updates = 0;
+	const double delta = 1.0 / 120.0;
     
 	while (!window.shouldClose()) {
-		glfwPollEvents();
+		//get time
+		nowTime = glfwGetTime();
+		deltaTime += (nowTime - lastTime) / delta;
+		lastTime = nowTime;
 
-	    auto currentTime = std::chrono::high_resolution_clock::now();
-		auto newTime = std::chrono::high_resolution_clock::now();
-		float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
-		currentTime = newTime;
-
-        camera.setProjection(glm::radians(45.f),  renderer.getAspectRatio(), 0.1f, 10.f);
-		if (InputManager::keys[GLFW_KEY_W]) {
-			camera.moveCamForward(2000.0f * frameTime);
-		}
-		if (InputManager::keys[GLFW_KEY_S]) {
-			camera.moveCamBack(2000.0f * frameTime);
-		}
-		if (InputManager::keys[GLFW_KEY_A]) {
-			camera.moveCamLeft(2000.0f * frameTime);
-		}
-		if (InputManager::keys[GLFW_KEY_D]) {
-			camera.moveCamRight(2000.0f * frameTime);
-		}
-		camera.rotateCamera(InputManager::xoffset * frameTime * 2000000, InputManager::yoffset * frameTime * 2000000, 0.1f);
-		InputManager::xoffset = 0;
-		InputManager::yoffset = 0;
-
-		if (auto commandBuffer = renderer.beginFrame()) {
-			renderer.beginSwapChainRenderPass(commandBuffer);
-			renderManager.renderGameObjects(commandBuffer, gameObjects, camera);
-			renderer.endSwapChainRenderPass(commandBuffer);
-			renderer.endFrame();
+		//update at delta
+		while (deltaTime >= 1.0) {
+			update();
+			updates++;
+			deltaTime--;
 		}
 
+		render();
+		frames++;
 
-        gameObjects[0].transform.rotation = glm::vec3(glfwGetTime() * 10, 0, 0);
-        //gameObjects[0].transform.translation = glm::vec3(sin(glfwGetTime()), 0.5, 0.5);
+		//reset and output fps
+		if (glfwGetTime() - timer > 1.0) {
+			timer++;
+			//std::cout << "FPS: " << frames << " Updates:" << updates << std::endl;
+			updates = 0, frames = 0;
+		}
 	}
 
 	vkDeviceWaitIdle(device.device());
