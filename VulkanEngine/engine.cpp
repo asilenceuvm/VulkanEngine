@@ -88,7 +88,9 @@ Engine::Engine() {
 	PyImport_AppendInittab("engine", &PyInit_engine);
 }
 
-Engine::~Engine() {}
+Engine::~Engine() {
+	gameObjects.clear();
+}
 
 //temp
 std::unique_ptr<Model> createCubeModel(Device& device, glm::vec3 offset) {
@@ -157,6 +159,22 @@ void Engine::loadGameObjects() {
   cube.transform.scale = {.5f, .5f, .5f};
   cube.transform.rotation = { 0.f, 0.5f, 0.f };
   gameObjects.push_back(std::move(cube));
+
+  auto cube2 = GameObject::createGameObject();
+  cube2.model = model;
+  cube2.transform.translation = {.5f, .5f, 1.f};
+  cube2.transform.scale = {.5f, .5f, .5f};
+  cube2.transform.rotation = { 0.f, 0.5f, 0.f };
+  gameObjects.push_back(std::move(cube2));
+
+  for (int i = 0; i < 100; i++) {
+	  cube2 = GameObject::createGameObject();
+	  cube2.model = model;
+	  cube2.transform.translation = {.5f + (i *.5f), .5f, 1.f};
+	  cube2.transform.scale = {.5f, .5f, .5f};
+	  cube2.transform.rotation = { 0.f, 0.5f, 0.f };
+	  gameObjects.push_back(std::move(cube2));
+  }
 }
 
 void sighandler(int s) {
