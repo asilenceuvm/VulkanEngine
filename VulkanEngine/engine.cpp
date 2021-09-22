@@ -34,41 +34,75 @@
 
 
 std::vector<GameObject> Engine::gameObjects;
+static PyObject* engineError;
 
 //python methods to interact with engine
 static PyObject* change_scale(PyObject* self, PyObject* args) {
+	char* tag;
     float scaleX, scaleY, scaleZ;
-	if(PyArg_ParseTuple(args, "fff", &scaleX, &scaleY, &scaleZ)) {
-        Engine::gameObjects[0].transform.scale = glm::vec3(scaleX, scaleY, scaleZ);
+	if(PyArg_ParseTuple(args, "sfff", &tag, &scaleX, &scaleY, &scaleZ)) {
+		auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == tag; });
+		auto index = std::distance(Engine::gameObjects.begin(), it);
+		if (index < 0 || index >= Engine::gameObjects.size()) {
+			spdlog::critical("No such tag exists");
+		}
+		else {
+			Engine::gameObjects[index].transform.scale = glm::vec3(scaleX, scaleY, scaleZ);
+		}
 	}
 
 	return PyLong_FromLong(0);
 }
 
 static PyObject* change_translation(PyObject* self, PyObject* args) {
+	char* tag;
     float translationX, translationY, translationZ;
-	if(PyArg_ParseTuple(args, "fff", &translationX, &translationY, &translationZ)) {
-        Engine::gameObjects[0].transform.translation = glm::vec3(translationX, translationY, translationZ);
+	if(PyArg_ParseTuple(args, "sfff", &tag, &translationX, &translationY, &translationZ)) {
+		auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == tag; });
+		auto index = std::distance(Engine::gameObjects.begin(), it);
+		if (index < 0 || index >= Engine::gameObjects.size()) {
+			spdlog::critical("No such tag exists");
+		}
+		else {
+			Engine::gameObjects[index].transform.translation = glm::vec3(translationX, translationY, translationZ);
+		}
 	}
 
 	return PyLong_FromLong(0);
 }
 
 static PyObject* change_rotation(PyObject* self, PyObject* args) {
+	char* tag;
     float rotationX, rotationY, rotationZ;
-	if(PyArg_ParseTuple(args, "fff", &rotationX, &rotationY, &rotationZ)) {
-        Engine::gameObjects[0].transform.rotation = glm::vec3(rotationX, rotationY, rotationZ);
+	if(PyArg_ParseTuple(args, "sfff", &tag, &rotationX, &rotationY, &rotationZ)) {
+		auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == tag; });
+		auto index = std::distance(Engine::gameObjects.begin(), it);
+		if (index < 0 || index >= Engine::gameObjects.size()) {
+			spdlog::critical("No such tag exists");
+		}
+		else {
+			Engine::gameObjects[index].transform.rotation = glm::vec3(rotationX, rotationY, rotationZ);
+		}
 	}
 
 	return PyLong_FromLong(0);
 }
 
+static PyObject* get_tags(PyObject* self, PyObject* args) {
+	PyObject* listObj = PyList_New(Engine::gameObjects.size());
+	for (int i = 0; i < Engine::gameObjects.size(); i++) {
+		PyObject* tag = PyBytes_FromString(Engine::gameObjects[i].getTag().c_str());
+		PyList_SetItem(listObj, i, tag);
+	}
+	return listObj;
+}
 
 //helper methods python/c++ interaction
 static struct PyMethodDef methods[] = {
 	{ "change_scale", change_scale, METH_VARARGS, "test print method"},
 	{ "change_translation", change_translation, METH_VARARGS, "test print method"},
 	{ "change_rotation", change_rotation, METH_VARARGS, "test print method"},
+	{ "get_tags", get_tags, METH_VARARGS, "test print method"},
 	{ NULL, NULL, 0, NULL }
 };
 
@@ -152,29 +186,31 @@ std::unique_ptr<Model> createCubeModel(Device& device, glm::vec3 offset) {
 }
 
 void Engine::loadGameObjects() {
-  std::shared_ptr<Model> model = createCubeModel(device, {.0f, .0f, .0f});
-  auto cube = GameObject::createGameObject();
-  cube.model = model;
-  cube.transform.translation = {.0f, .0f, .5f};
-  cube.transform.scale = {.5f, .5f, .5f};
-  cube.transform.rotation = { 0.f, 0.5f, 0.f };
-  gameObjects.push_back(std::move(cube));
+	std::shared_ptr<Model> model = createCubeModel(device, {.0f, .0f, .0f});
+	//auto cube = GameObject::createGameObject();
+	//cube.model = model;
+	//cube.transform.translation = {.0f, .0f, .5f};
+	//cube.transform.scale = {.5f, .5f, .5f};
+	//cube.transform.rotation = { 0.f, 0.5f, 0.f };
+	//gameObjects.push_back(std::move(cube));
 
-  auto cube2 = GameObject::createGameObject();
-  cube2.model = model;
-  cube2.transform.translation = {.5f, .5f, 1.f};
-  cube2.transform.scale = {.5f, .5f, .5f};
-  cube2.transform.rotation = { 0.f, 0.5f, 0.f };
-  gameObjects.push_back(std::move(cube2));
+	//auto cube2 = GameObject::createGameObject();
+	//cube2.model = model;
+	//cube2.transform.translation = {.5f, .5f, 1.f};
+	//cube2.transform.scale = {.5f, .5f, .5f};
+	//cube2.transform.rotation = { 0.f, 0.5f, 0.f };
+	//gameObjects.push_back(std::move(cube2));
 
-  for (int i = 0; i < 100; i++) {
-	  cube2 = GameObject::createGameObject();
-	  cube2.model = model;
-	  cube2.transform.translation = {.5f + (i *.5f), .5f, 1.f};
-	  cube2.transform.scale = {.5f, .5f, .5f};
-	  cube2.transform.rotation = { 0.f, 0.5f, 0.f };
-	  gameObjects.push_back(std::move(cube2));
-  }
+	for (int i = 0; i < 10; i++) {
+		for (int j = 0; j < 10; j++) {
+			auto cube = GameObject::createGameObject("cube" + std::to_string(i) + std::to_string(j));
+			cube.model = model;
+			cube.transform.translation = { .2f + (i * .2f), .2f + (j * .2f), .5f };
+			cube.transform.scale = { .2f, .2f, .2f };
+			cube.transform.rotation = { 0.f, 0.5f, 0.f };
+			gameObjects.push_back(std::move(cube));
+		}
+	}
 }
 
 void sighandler(int s) {

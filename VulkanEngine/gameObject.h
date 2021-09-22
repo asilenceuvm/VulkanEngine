@@ -1,6 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <iostream>
+
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "model.h"
@@ -30,9 +32,9 @@ public:
 	glm::vec3 color{};
 	TransformComponent transform{};
 
-	static GameObject createGameObject() {
+	static GameObject createGameObject(std::string tag) {
 		static id_t currentId = 0;
-		return GameObject{ currentId++ };
+		return GameObject{ currentId++, tag };
 	}
 
 	GameObject(const GameObject&) = delete;
@@ -43,10 +45,14 @@ public:
 	id_t getId() {
 		return id;
 	}
+	std::string getTag() const {
+		return tag;
+	}
 
 private:
 	id_t id;
+	std::string tag;
 
-	GameObject(id_t objId) : id{ objId } {}
+	GameObject(id_t objId, std::string objTag) : id{ objId }, tag{ objTag } {}
 };
 
