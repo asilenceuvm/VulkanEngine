@@ -215,6 +215,7 @@ pause</Command>
     <ClInclude Include="inputManager.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="pipeline.h" />
+    <ClInclude Include="pythonManager.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="renderManager.h" />
     <ClInclude Include="settings.h" />

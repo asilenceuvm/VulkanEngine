@@ -34,9 +34,6 @@ private:
 
 	void loadGameObjects();
 
-	void initPython();
-	void runPythonScript(std::string scriptname, std::string methodname, std::vector<std::string> args);
-
 	void update();
 	void render();
 };
