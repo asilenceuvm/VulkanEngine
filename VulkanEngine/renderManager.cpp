@@ -13,7 +13,6 @@
 #include "glm/gtx/string_cast.hpp"
 
 
-//simple push constant for controlling an offset and color 
 struct PushConstantData {
 	alignas(16) glm::mat4 model{ 1.f };
 	alignas(16) glm::mat4 view{ 1.f };
@@ -65,8 +64,6 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 		PushConstantData push{};
 		push.color = obj.color;
 		push.model = obj.transform.mat4();
-
-		//push.view = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 		push.view = camera.getView();
 		push.proj = camera.getProjection();
 
