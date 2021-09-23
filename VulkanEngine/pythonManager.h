@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <csignal>
+#include <filesystem>
 
 // logic for python in debug mode
 // little bit hacky but should do the trick
@@ -21,6 +22,7 @@
 #include "spdlog/spdlog.h"
 
 #include "engine.h"
+#include "utils.h"
 
 namespace PythonManager {
 	//python methods to interact with engine
@@ -151,7 +153,7 @@ namespace PythonManager {
 				pValue = PyObject_CallObject(pFunc, pArgs);
 				Py_DECREF(pArgs);
 				if (pValue != NULL) {
-					printf("Result of call: %ld\n", PyLong_AsLong(pValue));
+					//printf("Result of call: %ld\n", PyLong_AsLong(pValue));
 					Py_DECREF(pValue);
 				}
 				else {
@@ -185,12 +187,31 @@ namespace PythonManager {
 		//temp example call for python script
 		PyRun_SimpleString("import sys");
 		PyRun_SimpleString("sys.path.append('.')");
+		PyRun_SimpleString("sys.path.append('./scripts')");
 		//PyRun_SimpleString("sys.path.append('./scripts')");
 		//PyRun_SimpleString("import numpy");
-		std::vector<std::string> args;
-		args.push_back("1");
-		args.push_back("2");
+		//std::vector<std::string> args;
+		//args.push_back("1");
+		//args.push_back("2");
 		//runPythonScript("multiply", "sub", args);
 		runPythonScript("startup", "startup");
+	}
+
+	static void runUpdates() {
+		//get all python files in scripts directory
+		std::vector<std::string> scripts;
+		std::string path = "./scripts";
+		for (const auto& entry : std::filesystem::directory_iterator(path)) {
+			if (Utils::hasEnding(entry.path().u8string(), ".py")) {
+				// -3 and +1 are for \\(script) and .py ending
+				std::string script = entry.path().u8string().substr(path.size() + 1, entry.path().u8string().size());
+				script = script.substr(0, script.size() - 3);
+				scripts.push_back(script);
+			}
+		}
+
+		for (const auto& script : scripts) {
+			runPythonScript(script, "update");
+		}
 	}
 };

@@ -220,6 +220,7 @@ pause</Command>
     <ClInclude Include="renderManager.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="swapchain.h" />
+    <ClInclude Include="utils.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>

@@ -123,6 +123,7 @@ void Engine::render() {
 }
 
 void Engine::update() {
+	//PythonManager::runUpdates(); commented out for testing
 	camera.setProjection(glm::radians(45.f),  renderer.getAspectRatio(), 0.1f, 10.f);
 	if (InputManager::keys[GLFW_KEY_W]) {
 		camera.moveCamForward(.05f);
