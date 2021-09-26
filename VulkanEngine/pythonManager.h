@@ -179,6 +179,7 @@ namespace PythonManager {
 	}
 
 
+
 	static void initPython() {
 		//init python
 		Py_Initialize();

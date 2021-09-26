@@ -205,6 +205,7 @@ pause</Command>
     <ClCompile Include="renderer.cpp" />
     <ClCompile Include="renderManager.cpp" />
     <ClCompile Include="swapchain.cpp" />
+    <ClCompile Include="texture.cpp" />
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -220,6 +221,7 @@ pause</Command>
     <ClInclude Include="renderManager.h" />
     <ClInclude Include="settings.h" />
     <ClInclude Include="swapchain.h" />
+    <ClInclude Include="texture.h" />
     <ClInclude Include="utils.h" />
     <ClInclude Include="window.h" />
   </ItemGroup>

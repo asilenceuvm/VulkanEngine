@@ -92,13 +92,13 @@ std::unique_ptr<Model> createCubeModel(Device& device, glm::vec3 offset) {
 		v.position += offset;
 	}
 
-	modelGeometry.indices = {0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
-                          12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21};
+	modelGeometry.indices = { 0,  1,  2,  0,  3,  1,  4,  5,  6,  4,  7,  5,  8,  9,  10, 8,  11, 9,
+						  12, 13, 14, 12, 15, 13, 16, 17, 18, 16, 19, 17, 20, 21, 22, 20, 23, 21 };
 	return std::make_unique<Model>(device, modelGeometry);
 }
 
 void Engine::loadGameObjects() {
-	std::shared_ptr<Model> model = createCubeModel(device, {.0f, .0f, .0f});
+	/*std::shared_ptr<Model> model = createCubeModel(device, {.0f, .0f, .0f});
 	for (int i = 0; i < 10; i++) {
 		for (int j = 0; j < 10; j++) {
 			auto cube = GameObject::createGameObject("cube" + std::to_string(i) + std::to_string(j));
@@ -108,7 +108,14 @@ void Engine::loadGameObjects() {
 			cube.transform.rotation = { 0.f, 0.5f, 0.f };
 			gameObjects.push_back(std::move(cube));
 		}
-	}
+	}*/
+	std::shared_ptr<Model> model =
+		Model::createModelFromFile(device, "models/smooth_vase.obj");
+	auto gameObj = GameObject::createGameObject("vase");
+	gameObj.model = model;
+	gameObj.transform.translation = { .0f, .0f, 2.5f };
+	gameObj.transform.scale = glm::vec3(3.f);
+	gameObjects.push_back(std::move(gameObj));
 }
 
 
@@ -123,8 +130,8 @@ void Engine::render() {
 }
 
 void Engine::update() {
-	//PythonManager::runUpdates(); commented out for testing
-	camera.setProjection(glm::radians(45.f),  renderer.getAspectRatio(), 0.1f, 10.f);
+	//PythonManager::runUpdates();
+	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 10.f);
 	if (InputManager::keys[GLFW_KEY_W]) {
 		camera.moveCamForward(.05f);
 	}
@@ -142,7 +149,7 @@ void Engine::update() {
 	InputManager::yoffset = 0;
 }
 
-void Engine::run() {   
+void Engine::run() {
 	PythonManager::initPython();
 
 	//starting values for camera
@@ -154,7 +161,7 @@ void Engine::run() {
 	double deltaTime = 0, nowTime = 0;
 	int frames = 0, updates = 0;
 	const double delta = 1.0 / 120.0;
-    
+
 	while (!window.shouldClose()) {
 		//get time
 		nowTime = glfwGetTime();
