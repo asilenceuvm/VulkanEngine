@@ -8,6 +8,7 @@
 #include "glm/glm.hpp"
 
 #include "device.h"
+#include "buffer.h"
 
 class Model {
 public:
@@ -48,13 +49,11 @@ public:
 private:
 	Device& device;
 
-	VkBuffer vertexBuffer;
-	VkDeviceMemory vertexBufferMemory;
-	uint32_t vertexCount;
+	std::unique_ptr<Buffer> vertexBuffer;
+	int32_t vertexCount;
 
 	bool hasIndexBuffer = false;
-	VkBuffer indexBuffer;
-	VkDeviceMemory indexBufferMemory;
+	std::unique_ptr<Buffer> indexBuffer;
 	uint32_t indexCount;
 
 	void createVertexBuffers(const std::vector<Vertex> &vertices);
