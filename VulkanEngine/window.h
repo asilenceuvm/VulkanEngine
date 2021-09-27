@@ -20,6 +20,7 @@ public:
 
 	bool windowResized() { return framebufferResized; }
 	void resetWindowResizedFlag() { framebufferResized = false; }
+	void setWindowShouldClose();
 private:
 	GLFWwindow* window;
 

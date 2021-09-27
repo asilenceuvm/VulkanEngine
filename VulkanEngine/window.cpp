@@ -36,6 +36,10 @@ bool Window::shouldClose() {
 	return glfwWindowShouldClose(window);
 }
 
+void Window::setWindowShouldClose() {
+	glfwSetWindowShouldClose(window, GLFW_TRUE);
+}
+
 void Window::createWindowSurface(VkInstance instance, VkSurfaceKHR* surface) {
 	if (glfwCreateWindowSurface(instance, window, nullptr, surface)) {
 		spdlog::critical("Failed to create window surface");

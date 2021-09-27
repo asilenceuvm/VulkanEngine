@@ -14,6 +14,7 @@ class Engine {
 public:
 	int width = 800;
 	int height = 600;
+
 	static std::vector<GameObject> gameObjects;
 
 	Engine();
@@ -24,6 +25,9 @@ public:
 	Engine& operator=(const Engine&) = delete;
 
 	void run();
+
+	void update();
+	void render();
 private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };
@@ -31,10 +35,8 @@ private:
 	RenderManager renderManager{ device, renderer.getSwapChainRenderPass() };
     Camera camera{};
 
-
 	void loadGameObjects();
 
-	void update();
-	void render();
+	void shutdown();
 };
 
