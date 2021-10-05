@@ -59,6 +59,7 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath, const std
 	vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 	vertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
 
+
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
 	pipelineInfo.stageCount = 2;
@@ -115,6 +116,8 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
 	configInfo.rasterizationInfo.lineWidth = 1.0f;
 	configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 	configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
+	configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
 	configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
 
 	configInfo.multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;

@@ -38,6 +38,8 @@ std::vector<GameObject> Engine::gameObjects;
 
 Engine::Engine() {
 	loadGameObjects();
+	renderManager.createUniformBuffers();
+	renderManager.createDescriptorSets(renderer.getDescriptorPool());
 
 	//tell python where to find c++ interaction methods 
 	PyImport_AppendInittab("engine", &PythonManager::PyInit_engine);
@@ -62,7 +64,7 @@ void Engine::render() {
 	glfwPollEvents();
 	if (auto commandBuffer = renderer.beginFrame()) {
 		renderer.beginSwapChainRenderPass(commandBuffer);
-		renderManager.renderGameObjects(commandBuffer, gameObjects, camera);
+		renderManager.renderGameObjects(commandBuffer, gameObjects, camera, renderer.getFrameIndex());
 		renderer.endSwapChainRenderPass(commandBuffer);
 		renderer.endFrame();
 	}

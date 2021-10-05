@@ -8,6 +8,8 @@
 #include <set>
 #include <stdexcept>
 
+#include "spdlog/spdlog.h"
+
 
 Swapchain::Swapchain(Device& deviceRef, VkExtent2D extent)
 	: device{ deviceRef }, windowExtent{ extent } {
@@ -27,6 +29,7 @@ void Swapchain::init() {
 	createRenderPass();
 	createDepthResources();
 	createFramebuffers();
+	createDescriptorPool();
 	createSyncObjects();
 }
 
@@ -35,6 +38,8 @@ Swapchain::~Swapchain() {
 		vkDestroyImageView(device.device(), imageView, nullptr);
 	}
 	swapChainImageViews.clear();
+
+	vkDestroyDescriptorPool(device.device(), descriptorPool, nullptr);
 
 	if (swapChain != nullptr) {
 		vkDestroySwapchainKHR(device.device(), swapChain, nullptr);
@@ -106,7 +111,7 @@ VkResult Swapchain::submitCommandBuffers(
 	vkResetFences(device.device(), 1, &inFlightFences[currentFrame]);
 	if (vkQueueSubmit(device.graphicsQueue(), 1, &submitInfo, inFlightFences[currentFrame]) !=
 		VK_SUCCESS) {
-		throw std::runtime_error("failed to submit draw command buffer!");
+		spdlog::critical("Failed to submit draw command buffer");
 	}
 
 	VkPresentInfoKHR presentInfo = {};
@@ -175,7 +180,7 @@ void Swapchain::createSwapChain() {
 	createInfo.oldSwapchain = oldSwapchain == nullptr ? VK_NULL_HANDLE : oldSwapchain->swapChain;
 
 	if (vkCreateSwapchainKHR(device.device(), &createInfo, nullptr, &swapChain) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create swap chain!");
+		spdlog::critical("Failed to create swap chain");
 	}
 
 	vkGetSwapchainImagesKHR(device.device(), swapChain, &imageCount, nullptr);
@@ -202,7 +207,7 @@ void Swapchain::createImageViews() {
 
 		if (vkCreateImageView(device.device(), &viewInfo, nullptr, &swapChainImageViews[i]) !=
 			VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
+			spdlog::critical("Failed to create texture image");
 		}
 	}
 }
@@ -264,7 +269,7 @@ void Swapchain::createRenderPass() {
 	renderPassInfo.pDependencies = &dependency;
 
 	if (vkCreateRenderPass(device.device(), &renderPassInfo, nullptr, &renderPass) != VK_SUCCESS) {
-		throw std::runtime_error("failed to create render pass!");
+		spdlog::critical("Failed to create render pass");
 	}
 }
 
@@ -288,7 +293,7 @@ void Swapchain::createFramebuffers() {
 			&framebufferInfo,
 			nullptr,
 			&swapChainFramebuffers[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create framebuffer!");
+			spdlog::critical("Failed to create framebuffer");
 		}
 	}
 }
@@ -337,7 +342,7 @@ void Swapchain::createDepthResources() {
 		viewInfo.subresourceRange.layerCount = 1;
 
 		if (vkCreateImageView(device.device(), &viewInfo, nullptr, &depthImageViews[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create texture image view!");
+			spdlog::critical("Failed to create texture image");
 		}
 	}
 }
@@ -361,10 +366,27 @@ void Swapchain::createSyncObjects() {
 			vkCreateSemaphore(device.device(), &semaphoreInfo, nullptr, &renderFinishedSemaphores[i]) !=
 			VK_SUCCESS ||
 			vkCreateFence(device.device(), &fenceInfo, nullptr, &inFlightFences[i]) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create synchronization objects for a frame!");
+			spdlog::critical("Filaed to create sunchronization objects");
 		}
 	}
 }
+
+void Swapchain::createDescriptorPool() {
+	VkDescriptorPoolSize poolSize{};
+	poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	poolSize.descriptorCount = static_cast<uint32_t>(imageCount());
+
+	VkDescriptorPoolCreateInfo poolInfo{};
+	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+	poolInfo.poolSizeCount = 1;
+	poolInfo.pPoolSizes = &poolSize;
+	poolInfo.maxSets = static_cast<uint32_t>(imageCount());
+
+	if (vkCreateDescriptorPool(device.device(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+		spdlog::critical("Failed to create descriptor pool");
+	}
+}
+
 
 VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {
 	for (const auto& availableFormat : availableFormats) {
@@ -410,4 +432,3 @@ VkFormat Swapchain::findDepthFormat() {
 		VK_IMAGE_TILING_OPTIMAL,
 		VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT);
 }
-

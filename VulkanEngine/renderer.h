@@ -36,6 +36,12 @@ public:
 	float getAspectRatio() const {
 		return swapchain->extentAspectRatio();
 	}
+	size_t getImageCount() const {
+		return swapchain->imageCount();
+	}
+	VkDescriptorPool getDescriptorPool() {
+		return swapchain->getDescriptorPool();
+	}
 
 private:
 	Window& window;
@@ -51,5 +57,7 @@ private:
 	void freeCommandBuffers();
 	void drawFrame();
 	void recreateSwapChain();
+
+	void createDescriptorPool();
 };
 

@@ -12,7 +12,14 @@ layout(push_constant) uniform Push {
 	vec3 color;
 } push;
 
+layout(binding = 0) uniform UniformBufferObject {
+	mat4 model;
+	mat4 view;
+	mat4 proj;
+	vec3 color;
+} ubo;
+
 void main() {
-	gl_Position = push.proj * push.view * push.model * vec4(position, 1.0);
+	gl_Position = ubo.proj * ubo.view * ubo.model * vec4(position, 1.0);
 	fragColor = color;
 }
