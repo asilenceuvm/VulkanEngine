@@ -49,9 +49,24 @@ Engine::~Engine() {
 	gameObjects.clear();
 }
 
+//temp
+std::unique_ptr<Model> createSquare(Device& device) {
+	Model::Geometry modelGeometry{};
+	modelGeometry.vertices = {
+		{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
+		{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	
+	};
+
+	modelGeometry.indices = {0, 1, 2, 2, 3, 0};
+	return std::make_unique<Model>(device, modelGeometry);
+}
 void Engine::loadGameObjects() {
-	std::shared_ptr<Model> model =
-		Model::createModelFromFile(device, "models/flat_vase.obj");
+	//std::shared_ptr<Model> model =
+		//Model::createModelFromFile(device, "models/flat_vase.obj");
+
+	std::shared_ptr<Model> model = createSquare(device);
 	auto gameObj = GameObject::createGameObject("vase");
 	gameObj.model = model;
 	gameObj.transform.translation = { .0f, .0f, 2.5f };

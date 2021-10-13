@@ -57,7 +57,5 @@ private:
 	void freeCommandBuffers();
 	void drawFrame();
 	void recreateSwapChain();
-
-	void createDescriptorPool();
 };
 
