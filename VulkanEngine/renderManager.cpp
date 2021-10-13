@@ -35,6 +35,7 @@ RenderManager::RenderManager(Device& device, VkRenderPass renderPass, size_t ima
 }
 
 RenderManager::~RenderManager() {
+	//Texture::cleanupTexture(device);
 	for (size_t i = 0; i < imageCount; i++) {
         vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
         vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
@@ -45,11 +46,6 @@ RenderManager::~RenderManager() {
 
 
 void RenderManager::createPipelineLayout() {
-	//VkPushConstantRange pushConstantRange{};
-	//pushConstantRange.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
-	//pushConstantRange.offset = 0;
-	//pushConstantRange.size = sizeof(PushConstantData);
-
 	VkDescriptorSetLayoutBinding uboLayoutBinding{};
     uboLayoutBinding.binding = 0;
     uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -78,7 +74,6 @@ void RenderManager::createPipelineLayout() {
 	pipelineLayoutInfo.setLayoutCount = 1;
 	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
-	//pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
 
 	if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
 		spdlog::critical("Failed to create pipeline layout");
@@ -105,7 +100,7 @@ void RenderManager::createUniformBuffers() {
 }
 
 void RenderManager::createDescriptorSets(VkDescriptorPool descriptorPool) {
-	Texture::createTexture(device, "textures/camel.jpg"); //TODO: FInd better place for this
+	texture = std::make_unique<Texture>(device, "textures/camel.jpg"); //TODO: rework way textures get loaded
 	std::vector<VkDescriptorSetLayout> layouts(imageCount, descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -126,8 +121,9 @@ void RenderManager::createDescriptorSets(VkDescriptorPool descriptorPool) {
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		imageInfo.imageView = Texture::createTextureImageView(device);
+		//imageInfo.imageView = Texture::createTextureImageView(device);
 		imageInfo.sampler = Texture::createTextureSampler(device);
+		imageInfo.imageView = texture->createTextureImageView(device);
 
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 

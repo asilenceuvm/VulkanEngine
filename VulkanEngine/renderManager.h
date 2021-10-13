@@ -8,6 +8,7 @@
 #include "device.h"
 #include "gameObject.h"
 #include "camera.h"
+#include "texture.h"
 
 
 class RenderManager {
@@ -34,6 +35,8 @@ private:
 	VkDescriptorSetLayout descriptorSetLayout;
 	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
+
+	std::unique_ptr<Texture> texture;
 
 	void createPipelineLayout();
 	void createPipeline(VkRenderPass renderPass);

@@ -8,27 +8,27 @@
 
 class Texture {
 public:
-	Texture(Device& device) : device{ device } {};
+	Texture(Device& device, std::string filepath) : device{ device }{
+		createTexture(device, filepath);
+	};
 	~Texture();
 
-	static void createTexture(Device& device, std::string filepath);
+	void createTexture(Device& device, std::string filepath);
 
-	static VkImageView createTextureImageView(Device& device);
+	VkImageView createTextureImageView(Device& device);
 	static VkSampler createTextureSampler(Device& device);
 private:
 	Device& device;
 
-	static VkImage textureImage;
-	static VkDeviceMemory textureImageMemory;
+	VkImage textureImage;
+	VkDeviceMemory textureImageMemory;
 	VkBuffer stagingBuffer;
 	VkDeviceMemory stagingBufferMemory;
 
-	static VkImageView textureImageView;
-	static VkSampler textureSampler;
+	VkImageView textureImageView;
 
-
-	static void createImage(Device& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-	static void transitionImageLayout(Device& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-	static VkImageView createImageView(Device& device, VkImage image, VkFormat format);
+	void createImage(Device& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+	void transitionImageLayout(Device& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	VkImageView createImageView(Device& device, VkImage image, VkFormat format);
 };
 
