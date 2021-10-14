@@ -7,12 +7,12 @@
 
 
 Texture::~Texture() {
-	//vkDestroyImageView(device.device(), textureImageView, nullptr);
-    //vkDestroyImage(device.device(), textureImage, nullptr);
-    //vkFreeMemory(device.device(), textureImageMemory, nullptr);
+	vkDestroyImageView(device.device(), textureImageView, nullptr);
+    vkDestroyImage(device.device(), textureImage, nullptr);
+    vkFreeMemory(device.device(), textureImageMemory, nullptr);
 }
 
-void Texture::createTexture(Device& device, std::string filepath) {
+void Texture::createTexture(std::string filepath) {
     int texWidth, texHeight, texChannels;
     stbi_uc* pixels = stbi_load(filepath.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
@@ -32,43 +32,19 @@ void Texture::createTexture(Device& device, std::string filepath) {
     vkUnmapMemory(device.device(), stagingBufferMemory);
 
     stbi_image_free(pixels);
-    createImage(device, texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
+    createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, textureImage, textureImageMemory);
 
 
-	transitionImageLayout(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+	transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     device.copyBufferToImage(stagingBuffer, textureImage, static_cast<uint32_t>(texWidth), static_cast<uint32_t>(texHeight), 1);
-    transitionImageLayout(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    transitionImageLayout(textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     vkDestroyBuffer(device.device(), stagingBuffer, nullptr);
     vkFreeMemory(device.device(), stagingBufferMemory, nullptr);
 }
 
-VkSampler Texture::createTextureSampler(Device& device) {
-	VkSampler textureSampler;
-	VkSamplerCreateInfo samplerInfo{};
 
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = device.properties.limits.maxSamplerAnisotropy;
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-	if (vkCreateSampler(device.device(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
-		spdlog::critical("Failed to create texture sampler");
-	}
-
-	return textureSampler;
-}
-
-void Texture::createImage(Device& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
+void Texture::createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory) {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -103,7 +79,7 @@ void Texture::createImage(Device& device, uint32_t width, uint32_t height, VkFor
     vkBindImageMemory(device.device(), image, imageMemory, 0);
 }
 
-void Texture::transitionImageLayout(Device& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
+void Texture::transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout) {
 	VkCommandBuffer commandBuffer = device.beginSingleTimeCommands();
 
 	VkImageMemoryBarrier barrier{};
@@ -149,12 +125,11 @@ void Texture::transitionImageLayout(Device& device, VkImage image, VkFormat form
 
 	device.endSingleTimeCommands(commandBuffer);
 }
-VkImageView Texture::createTextureImageView(Device& device) {
-	textureImageView = createImageView(device, textureImage, VK_FORMAT_R8G8B8A8_SRGB);
-	return textureImageView;
+void Texture::createTextureImageView() {
+	textureImageView = createImageView(textureImage, VK_FORMAT_R8G8B8A8_SRGB);
 }
 
-VkImageView Texture::createImageView(Device& device, VkImage image, VkFormat format) {
+VkImageView Texture::createImageView(VkImage image, VkFormat format) {
 	VkImageViewCreateInfo viewInfo{};
 	viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 	viewInfo.image = textureImage;

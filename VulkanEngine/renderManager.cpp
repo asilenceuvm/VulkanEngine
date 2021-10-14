@@ -15,12 +15,6 @@
 #include "buffer.h"
 #include "texture.h"
 
-struct PushConstantData {
-	alignas(16) glm::mat4 model{ 1.f };
-	alignas(16) glm::mat4 view{ 1.f };
-	alignas(16) glm::mat4 proj{ 1.f };
-	alignas(16) glm::vec3 color;
-};
 
 struct UniformBufferObject {
 	alignas(16) glm::mat4 model;
@@ -35,7 +29,7 @@ RenderManager::RenderManager(Device& device, VkRenderPass renderPass, size_t ima
 }
 
 RenderManager::~RenderManager() {
-	//Texture::cleanupTexture(device);
+	vkDestroySampler(device.device(), textureSampler, nullptr);
 	for (size_t i = 0; i < imageCount; i++) {
         vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
         vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
@@ -99,8 +93,32 @@ void RenderManager::createUniformBuffers() {
     }
 }
 
+void RenderManager::createTextureSampler() {
+	VkSamplerCreateInfo samplerInfo{};
+
+	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+	samplerInfo.magFilter = VK_FILTER_LINEAR;
+	samplerInfo.minFilter = VK_FILTER_LINEAR;
+	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	samplerInfo.anisotropyEnable = VK_TRUE;
+	samplerInfo.maxAnisotropy = device.properties.limits.maxSamplerAnisotropy;
+	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+	samplerInfo.unnormalizedCoordinates = VK_FALSE;
+	samplerInfo.compareEnable = VK_FALSE;
+	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+
+	if (vkCreateSampler(device.device(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
+		spdlog::critical("Failed to create texture sampler");
+	}
+}
+
 void RenderManager::createDescriptorSets(VkDescriptorPool descriptorPool) {
-	texture = std::make_unique<Texture>(device, "textures/camel.jpg"); //TODO: rework way textures get loaded
+	//texture = std::make_unique<Texture>(device, "textures/camel.jpg"); //TODO: rework way textures get loaded
+	createTextureSampler();
+	texture.createTextureImageView();
 	std::vector<VkDescriptorSetLayout> layouts(imageCount, descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -121,9 +139,8 @@ void RenderManager::createDescriptorSets(VkDescriptorPool descriptorPool) {
 
 		VkDescriptorImageInfo imageInfo{};
 		imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		//imageInfo.imageView = Texture::createTextureImageView(device);
-		imageInfo.sampler = Texture::createTextureSampler(device);
-		imageInfo.imageView = texture->createTextureImageView(device);
+		imageInfo.sampler = textureSampler; 
+		imageInfo.imageView = texture.getImageView();
 
 		std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 
@@ -151,11 +168,6 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	pipeline->bind(commandBuffer);
 
 	for (auto& obj : gameObjects) {
-		//PushConstantData push{};
-		//push.color = obj.color;
-		//push.model = obj.transform.mat4();
-		//push.view = camera.getView();
-		//push.proj = camera.getProjection();
 		UniformBufferObject ubo{};
 		ubo.color = obj.color;
 		ubo.model = obj.transform.mat4();
@@ -167,13 +179,6 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 			memcpy(data, &ubo, sizeof(ubo));
 		vkUnmapMemory(device.device(), uniformBuffersMemory[currentFrameIndex]);
 
-		//vkCmdPushConstants(
-		//	commandBuffer,
-		//	pipelineLayout,
-		//	VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT,
-		//	0,
-		//	sizeof(PushConstantData),
-		//	&push);
 		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[currentFrameIndex], 0, nullptr);
 
 		obj.model->bind(commandBuffer);

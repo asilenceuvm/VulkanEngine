@@ -36,9 +36,12 @@ private:
 	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
-	std::unique_ptr<Texture> texture;
+	//std::unique_ptr<Texture> texture;
+	Texture texture{ device, "textures/camel.jpg" };
+	VkSampler textureSampler;
 
 	void createPipelineLayout();
 	void createPipeline(VkRenderPass renderPass);
+	void createTextureSampler();
 };
 

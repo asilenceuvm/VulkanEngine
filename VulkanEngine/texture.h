@@ -9,14 +9,16 @@
 class Texture {
 public:
 	Texture(Device& device, std::string filepath) : device{ device }{
-		createTexture(device, filepath);
+		createTexture(filepath);
 	};
 	~Texture();
 
-	void createTexture(Device& device, std::string filepath);
+	void createTexture(std::string filepath);
+	void createTextureImageView();
 
-	VkImageView createTextureImageView(Device& device);
-	static VkSampler createTextureSampler(Device& device);
+	VkImageView getImageView() {
+		return textureImageView;
+	}
 private:
 	Device& device;
 
@@ -27,8 +29,8 @@ private:
 
 	VkImageView textureImageView;
 
-	void createImage(Device& device, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
-	void transitionImageLayout(Device& device, VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
-	VkImageView createImageView(Device& device, VkImage image, VkFormat format);
+	void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory);
+	void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout);
+	VkImageView createImageView(VkImage image, VkFormat format);
 };
 
