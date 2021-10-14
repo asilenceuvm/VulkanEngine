@@ -32,7 +32,7 @@ private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };
 	Renderer renderer{ window, device };
-	RenderManager renderManager{ device, renderer.getSwapChainRenderPass(), renderer.getImageCount() };
+	RenderManager renderManager{ device, renderer.getSwapChainRenderPass(), renderer.getDescriptorSetLayout() };
     Camera camera{};
 
 	void loadGameObjects();

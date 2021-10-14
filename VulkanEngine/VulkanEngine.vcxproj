@@ -212,6 +212,7 @@ pause</Command>
   <ItemGroup>
     <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="constants.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="engine.h" />
     <ClInclude Include="gameObject.h" />

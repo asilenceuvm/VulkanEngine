@@ -119,6 +119,9 @@
     <ClInclude Include="buffer.h">
       <Filter>Header Files\gfx\vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">

@@ -42,8 +42,6 @@ public:
 	VkExtent2D getSwapChainExtent() { return swapChainExtent; }
 	uint32_t width() { return swapChainExtent.width; }
 	uint32_t height() { return swapChainExtent.height; }
-	VkDescriptorPool getDescriptorPool() { return descriptorPool; }
-
 
 private:
 	VkFormat swapChainImageFormat;
@@ -71,7 +69,6 @@ private:
 	std::vector<VkFence> imagesInFlight;
 	size_t currentFrame = 0;
 
-	VkDescriptorPool descriptorPool;
 
 	void init();
 	void createSwapChain();
@@ -80,7 +77,6 @@ private:
 	void createRenderPass();
 	void createFramebuffers();
 	void createSyncObjects();
-	void createDescriptorPool();
 
 	// Helper functions
 	VkSurfaceFormatKHR chooseSwapSurfaceFormat(

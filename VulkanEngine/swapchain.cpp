@@ -29,7 +29,6 @@ void Swapchain::init() {
 	createRenderPass();
 	createDepthResources();
 	createFramebuffers();
-	createDescriptorPool();
 	createSyncObjects();
 }
 
@@ -39,7 +38,6 @@ Swapchain::~Swapchain() {
 	}
 	swapChainImageViews.clear();
 
-	vkDestroyDescriptorPool(device.device(), descriptorPool, nullptr);
 
 	if (swapChain != nullptr) {
 		vkDestroySwapchainKHR(device.device(), swapChain, nullptr);
@@ -370,23 +368,6 @@ void Swapchain::createSyncObjects() {
 	}
 }
 
-void Swapchain::createDescriptorPool() {
-	std::array<VkDescriptorPoolSize, 2> poolSizes{};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(imageCount());
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(imageCount());
-
-	VkDescriptorPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(imageCount());
-
-	if (vkCreateDescriptorPool(device.device(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		spdlog::critical("Failed to create descriptor pool");
-	}
-}
 
 
 VkSurfaceFormatKHR Swapchain::chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR>& availableFormats) {

@@ -9,6 +9,7 @@
 #include "swapchain.h"
 #include "model.h"
 #include "gameObject.h"
+#include "texture.h"
 
 class Renderer {
 public:
@@ -23,6 +24,10 @@ public:
 	void endFrame();
 	void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 	void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
+
+	void createUniformBuffers();
+	void createDescriptorSets();
+	void updateDescriptorSets(int i, VkBuffer uniformBuffer);
 
 	//getters
 	VkRenderPass getSwapChainRenderPass() const { return swapchain->getRenderPass(); }
@@ -39,8 +44,17 @@ public:
 	size_t getImageCount() const {
 		return swapchain->imageCount();
 	}
-	VkDescriptorPool getDescriptorPool() {
-		return swapchain->getDescriptorPool();
+	std::vector<VkDeviceMemory> getUniformBuffersMemory() {
+		return uniformBuffersMemory;
+	}
+	std::vector<VkBuffer> getUniformBuffers() {
+		return uniformBuffers;
+	}
+	std::vector<VkDescriptorSet> getDescriptorSets() {
+		return descriptorSets;
+	}
+	VkDescriptorSetLayout getDescriptorSetLayout() {
+		return descriptorSetLayout;
 	}
 
 private:
@@ -53,9 +67,22 @@ private:
 	int currentFrameIndex{ 0 };
 	bool isFrameStarted{ false };
 
+	VkDescriptorPool descriptorPool;
+	std::vector<VkDescriptorSet> descriptorSets;
+	VkDescriptorSetLayout descriptorSetLayout;
+
+	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
+
+	//std::unique_ptr<Texture> texture;
+	Texture texture{ device, "textures/camel.jpg" };
+	VkSampler textureSampler;
+
 	void createCommandBuffers();
 	void freeCommandBuffers();
-	void drawFrame();
 	void recreateSwapChain();
+	void createTextureSampler();
+	void createDescriptorPool();
+	void createDescriptorSetLayout();
 };
 
