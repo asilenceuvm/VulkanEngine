@@ -72,6 +72,12 @@ void Engine::loadGameObjects() {
 	gameObj.transform.translation = { .0f, .0f, 2.5f };
 	gameObj.transform.scale = glm::vec3(2.f);
 	gameObjects.push_back(std::move(gameObj));
+
+	auto gameObj2 = GameObject::createGameObject("vase2");
+	gameObj2.model = model;
+	gameObj2.transform.translation = { 1.f, .0f, 2.5f };
+	gameObj2.transform.scale = glm::vec3(1.f);
+	gameObjects.push_back(std::move(gameObj2));
 }
 
 
