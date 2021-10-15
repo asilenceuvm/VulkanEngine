@@ -27,7 +27,7 @@ public:
 
 	void createUniformBuffers();
 	void createDescriptorSets();
-	void updateDescriptorSets(int i, VkBuffer uniformBuffer, Texture& texture);
+	void updateDescriptorSets(int i);
 
 	//getters
 	VkRenderPass getSwapChainRenderPass() const { return swapchain->getRenderPass(); }

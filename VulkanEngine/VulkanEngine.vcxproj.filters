@@ -69,6 +69,9 @@
     <ClCompile Include="buffer.cpp">
       <Filter>Source Files\gfx\vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="assetManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="engine.h">
@@ -120,6 +123,9 @@
       <Filter>Header Files\gfx\vulkan</Filter>
     </ClInclude>
     <ClInclude Include="constants.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="assetManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

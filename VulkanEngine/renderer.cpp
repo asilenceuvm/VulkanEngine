@@ -6,17 +6,21 @@
 
 #include "spdlog/spdlog.h"
 
+#include "assetManager.h"
 #include "constants.h"
 #include "engine.h"
 
 
 Renderer::Renderer(Window& window, Device& device) : window(window), device(device) {
+	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", true);
+	AssetManager::loadTexture(device, "textures/apple.jpg");
 	createDescriptorSetLayout();
 	recreateSwapChain();
 	createCommandBuffers();
 }
 
 Renderer::~Renderer() {
+	AssetManager::clearTextures();
 	vkDestroySampler(device.device(), textureSampler, nullptr);
 	vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout, nullptr);
 	for (size_t i = 0; i < 2; i++) {
@@ -184,7 +188,6 @@ void Renderer::createTextureSampler() {
 }
 
 void Renderer::createDescriptorSets() {
-	//texture = std::make_unique<Texture>(device, "textures/camel.jpg"); //TODO: rework way textures get loaded
 	createTextureSampler();
 	std::vector<VkDescriptorSetLayout> layouts(2, descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo{};
@@ -198,22 +201,22 @@ void Renderer::createDescriptorSets() {
 		throw std::runtime_error("Failed to allocate descriptor sets");
 	}
 
-	//for (size_t i = 0; i < 2; i++) {
-		//updateDescriptorSets(i, uniformBuffers[i], tex);
-	//}
+	for (size_t i = 0; i < 2; i++) {
+		updateDescriptorSets(i);
+	}
 }
 
 //int i is the descriptor set to update
-void Renderer::updateDescriptorSets(int i, VkBuffer uniformBuffer, Texture& texture) {
+void Renderer::updateDescriptorSets(int i) {
 	VkDescriptorBufferInfo bufferInfo{};
-	bufferInfo.buffer = uniformBuffer;
+	bufferInfo.buffer = uniformBuffers[i];
 	bufferInfo.offset = 0;
 	bufferInfo.range = sizeof(Constants::UniformBufferObject);
 
 	VkDescriptorImageInfo imageInfo{};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 	imageInfo.sampler = textureSampler; 
-	imageInfo.imageView = texture.getImageView();
+	imageInfo.imageView = AssetManager::textures[i]->getImageView();
 
 	std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
 

@@ -195,6 +195,7 @@ pause</Command>
     </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="assetManager.cpp" />
     <ClCompile Include="buffer.cpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="device.cpp" />
@@ -210,6 +211,7 @@ pause</Command>
     <ClCompile Include="window.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="assetManager.h" />
     <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="constants.h" />

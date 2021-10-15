@@ -27,6 +27,7 @@
 #include "glm/glm.hpp"
 #include "glm/gtc/constants.hpp"
 #include "glm/gtx/string_cast.hpp"
+#include "stb_image.h"
 
 #include "renderManager.h"
 #include "camera.h"
@@ -38,8 +39,6 @@ std::vector<GameObject> Engine::gameObjects;
 
 Engine::Engine() {
 	loadGameObjects();
-	//renderer.createUniformBuffers();
-	//renderManager.createDescriptorSets(renderer.getDescriptorPool(), renderer.getUniformBuffers());
 
 	//tell python where to find c++ interaction methods 
 	PyImport_AppendInittab("engine", &PythonManager::PyInit_engine);
@@ -49,28 +48,14 @@ Engine::~Engine() {
 	gameObjects.clear();
 }
 
-//temp
-std::unique_ptr<Model> createSquare(Device& device) {
-	Model::Geometry modelGeometry{};
-	modelGeometry.vertices = {
-		{{-0.5f, -0.5f, 0.f}, {1.0f, 0.0f, 0.0f}, {1.0f, 0.0f}},
-		{{0.5f, -0.5f, 0.f}, {0.0f, 1.0f, 0.0f}, {0.0f, 0.0f}},
-		{{0.5f, 0.5f, 0.f}, {0.0f, 0.0f, 1.0f}, {0.0f, 1.0f}},
-		{{-0.5f, 0.5f, 0.f}, {1.0f, 1.0f, 1.0f}, {1.0f, 1.0f}}	
-	};
-
-	modelGeometry.indices = {0, 1, 2, 2, 3, 0};
-	return std::make_unique<Model>(device, modelGeometry);
-}
 void Engine::loadGameObjects() {
 	std::shared_ptr<Model> model =
-		Model::createModelFromFile(device, "models/room.obj");
+		Model::createModelFromFile(device, "models/backpack/backpack.obj");
 
-	//std::shared_ptr<Model> model = createSquare(device);
 	auto gameObj = GameObject::createGameObject("room");
 	gameObj.model = model;
 	gameObj.transform.translation = { .0f, .0f, 2.5f };
-	gameObj.transform.scale = glm::vec3(2.f);
+	gameObj.transform.scale = glm::vec3(0.5f);
 	gameObjects.push_back(std::move(gameObj));
 
 	std::shared_ptr<Model> model2 =
@@ -95,7 +80,7 @@ void Engine::render() {
 
 void Engine::update() {
 	//PythonManager::runUpdates();
-	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 10.f);
+	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 100.f);
 	if (InputManager::keys[GLFW_KEY_W]) {
 		camera.moveCamForward(.05f);
 	}
@@ -120,10 +105,12 @@ void Engine::update() {
 void Engine::run() {
 	PythonManager::initPython();
 
-	Texture texture{ device, "textures/room.png" };
-	Texture texture2{ device, "textures/apple.jpg" };
-	renderer.updateDescriptorSets(0, renderer.getUniformBuffers()[0], texture);
-	renderer.updateDescriptorSets(1, renderer.getUniformBuffers()[1], texture2);
+	//stbi_set_flip_vertically_on_load(true);
+	//Texture texture{ device, "models/backpack/diffuse.jpg" };
+	//stbi_set_flip_vertically_on_load(false);
+	//Texture texture2{ device, "textures/apple.jpg" };
+	//renderer.updateDescriptorSets(0, renderer.getUniformBuffers()[0], texture);
+	//renderer.updateDescriptorSets(1, renderer.getUniformBuffers()[1], texture2);
 
 	//starting values for camera
 	InputManager::xoffset = 0;
