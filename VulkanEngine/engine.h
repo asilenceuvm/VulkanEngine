@@ -35,6 +35,7 @@ private:
 	RenderManager renderManager{ device, renderer.getSwapChainRenderPass(), renderer.getDescriptorSetLayout() };
     Camera camera{};
 
+
 	void loadGameObjects();
 
 	void shutdown();

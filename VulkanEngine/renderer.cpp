@@ -14,9 +14,6 @@ Renderer::Renderer(Window& window, Device& device) : window(window), device(devi
 	createDescriptorSetLayout();
 	recreateSwapChain();
 	createCommandBuffers();
-	//createUniformBuffers();
-	//createDescriptorPool();
-	//createDescriptorSets();
 }
 
 Renderer::~Renderer() {
@@ -189,7 +186,6 @@ void Renderer::createTextureSampler() {
 void Renderer::createDescriptorSets() {
 	//texture = std::make_unique<Texture>(device, "textures/camel.jpg"); //TODO: rework way textures get loaded
 	createTextureSampler();
-	texture.createTextureImageView();
 	std::vector<VkDescriptorSetLayout> layouts(2, descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -202,13 +198,13 @@ void Renderer::createDescriptorSets() {
 		throw std::runtime_error("Failed to allocate descriptor sets");
 	}
 
-	for (size_t i = 0; i < 2; i++) {
-		updateDescriptorSets(i, uniformBuffers[i]);
-	}
+	//for (size_t i = 0; i < 2; i++) {
+		//updateDescriptorSets(i, uniformBuffers[i], tex);
+	//}
 }
 
 //int i is the descriptor set to update
-void Renderer::updateDescriptorSets(int i, VkBuffer uniformBuffer) {
+void Renderer::updateDescriptorSets(int i, VkBuffer uniformBuffer, Texture& texture) {
 	VkDescriptorBufferInfo bufferInfo{};
 	bufferInfo.buffer = uniformBuffer;
 	bufferInfo.offset = 0;

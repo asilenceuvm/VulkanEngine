@@ -27,7 +27,7 @@ public:
 
 	void createUniformBuffers();
 	void createDescriptorSets();
-	void updateDescriptorSets(int i, VkBuffer uniformBuffer);
+	void updateDescriptorSets(int i, VkBuffer uniformBuffer, Texture& texture);
 
 	//getters
 	VkRenderPass getSwapChainRenderPass() const { return swapchain->getRenderPass(); }
@@ -75,7 +75,7 @@ private:
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 	//std::unique_ptr<Texture> texture;
-	Texture texture{ device, "textures/camel.jpg" };
+	Texture tex{ device, "textures/camel.jpg" };
 	VkSampler textureSampler;
 
 	void createCommandBuffers();

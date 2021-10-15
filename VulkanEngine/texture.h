@@ -10,6 +10,7 @@ class Texture {
 public:
 	Texture(Device& device, std::string filepath) : device{ device }{
 		createTexture(filepath);
+		createTextureImageView();
 	};
 	~Texture();
 

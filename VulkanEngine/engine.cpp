@@ -118,6 +118,10 @@ void Engine::update() {
 void Engine::run() {
 	PythonManager::initPython();
 
+	Texture texture{ device, "textures/camel.jpg" };
+	renderer.updateDescriptorSets(0, renderer.getUniformBuffers()[0], texture);
+	renderer.updateDescriptorSets(1, renderer.getUniformBuffers()[1], texture);
+
 	//starting values for camera
 	InputManager::xoffset = 0;
 	InputManager::yoffset = 0;
