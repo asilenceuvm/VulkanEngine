@@ -13,7 +13,9 @@
 
 Renderer::Renderer(Window& window, Device& device) : window(window), device(device) {
 	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", true);
-	AssetManager::loadTexture(device, "textures/apple.jpg");
+	for (int i = 0; i < 10; i++) {
+		AssetManager::loadTexture(device, "textures/apple.jpg");
+	}
 	createDescriptorSetLayout();
 	recreateSwapChain();
 	createCommandBuffers();
@@ -23,7 +25,7 @@ Renderer::~Renderer() {
 	AssetManager::clearTextures();
 	vkDestroySampler(device.device(), textureSampler, nullptr);
 	vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout, nullptr);
-	for (size_t i = 0; i < 2; i++) {
+	for (size_t i = 0; i < uniformBuffers.size(); i++) {
         vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
         vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
     }
@@ -157,10 +159,10 @@ void Renderer::recreateSwapChain() {
 void Renderer::createUniformBuffers() {
 	VkDeviceSize bufferSize = sizeof(Constants::UniformBufferObject);
 
-	uniformBuffers.resize(2);
-    uniformBuffersMemory.resize(2);
+	uniformBuffers.resize(AssetManager::textures.size());
+    uniformBuffersMemory.resize(AssetManager::textures.size());
 
-    for (size_t i = 0; i < 2; i++) {
+    for (size_t i = 0; i < AssetManager::textures.size(); i++) {
         device.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
     }
 }
@@ -189,19 +191,19 @@ void Renderer::createTextureSampler() {
 
 void Renderer::createDescriptorSets() {
 	createTextureSampler();
-	std::vector<VkDescriptorSetLayout> layouts(2, descriptorSetLayout);
+	std::vector<VkDescriptorSetLayout> layouts(AssetManager::textures.size(), descriptorSetLayout);
 	VkDescriptorSetAllocateInfo allocInfo{};
 	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 	allocInfo.descriptorPool = descriptorPool;
-	allocInfo.descriptorSetCount = static_cast<uint32_t>(2);
+	allocInfo.descriptorSetCount = static_cast<uint32_t>(AssetManager::textures.size());
 	allocInfo.pSetLayouts = layouts.data();
 
-	descriptorSets.resize(2);
+	descriptorSets.resize(AssetManager::textures.size());
 	if (vkAllocateDescriptorSets(device.device(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
 		throw std::runtime_error("Failed to allocate descriptor sets");
 	}
 
-	for (size_t i = 0; i < 2; i++) {
+	for (size_t i = 0; i < AssetManager::textures.size(); i++) {
 		updateDescriptorSets(i);
 	}
 }
@@ -243,15 +245,15 @@ void Renderer::updateDescriptorSets(int i) {
 void Renderer::createDescriptorPool() {
 	std::array<VkDescriptorPoolSize, 2> poolSizes{};
 	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(swapchain->imageCount());
+	poolSizes[0].descriptorCount = static_cast<uint32_t>(AssetManager::textures.size());
 	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(swapchain->imageCount());
+	poolSizes[1].descriptorCount = static_cast<uint32_t>(AssetManager::textures.size());
 
 	VkDescriptorPoolCreateInfo poolInfo{};
 	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
 	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(swapchain->imageCount());
+	poolInfo.maxSets = static_cast<uint32_t>(AssetManager::textures.size());
 
 	if (vkCreateDescriptorPool(device.device(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
 		spdlog::critical("Failed to create descriptor pool");

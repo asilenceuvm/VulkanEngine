@@ -60,11 +60,13 @@ void Engine::loadGameObjects() {
 
 	std::shared_ptr<Model> model2 =
 		Model::createModelFromFile(device, "models/apple.obj");
-	auto gameObj2 = GameObject::createGameObject("apple");
-	gameObj2.model = model2;
-	gameObj2.transform.translation = { 1.f, .0f, 2.5f };
-	gameObj2.transform.scale = glm::vec3(1.f);
-	gameObjects.push_back(std::move(gameObj2));
+	for (int i = 0; i < 10; i++) {
+		auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(i));
+		gameObj2.model = model2;
+		gameObj2.transform.translation = { 1.f, .0f + i, 2.5f };
+		gameObj2.transform.scale = glm::vec3(1.f);
+		gameObjects.push_back(std::move(gameObj2));
+	}
 }
 
 
@@ -104,13 +106,6 @@ void Engine::update() {
 
 void Engine::run() {
 	PythonManager::initPython();
-
-	//stbi_set_flip_vertically_on_load(true);
-	//Texture texture{ device, "models/backpack/diffuse.jpg" };
-	//stbi_set_flip_vertically_on_load(false);
-	//Texture texture2{ device, "textures/apple.jpg" };
-	//renderer.updateDescriptorSets(0, renderer.getUniformBuffers()[0], texture);
-	//renderer.updateDescriptorSets(1, renderer.getUniformBuffers()[1], texture2);
 
 	//starting values for camera
 	InputManager::xoffset = 0;
