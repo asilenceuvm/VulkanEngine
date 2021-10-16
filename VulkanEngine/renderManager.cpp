@@ -55,7 +55,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	for (int i = 0; i < gameObjects.size(); i++) {
 
 		Constants::UniformBufferObject ubo{};
-		ubo.color = gameObjects[i].color;
+		ubo.lightPos = glm::vec3(0, 1, 5); //TODO: make light pos a variable
 		ubo.model = gameObjects[i].transform.mat4();
 		ubo.view = camera.getView();
 		ubo.proj = camera.getProjection();
