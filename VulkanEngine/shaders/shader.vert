@@ -24,6 +24,6 @@ void main() {
     gl_Position = ubo.proj * ubo.view * vec4(fragPos, 1.0);
 
 	fragTexCoord = inTexCoord;
-	normal = inNormal;
+	normal = mat3(transpose(inverse(ubo.model))) * inNormal;  
 	lightPos = ubo.lightPos;
 }

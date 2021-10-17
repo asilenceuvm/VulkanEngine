@@ -15,6 +15,7 @@
 #include "buffer.h"
 #include "texture.h"
 #include "constants.h"
+#include "engine.h"
 
 
 RenderManager::RenderManager(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout) : device{ device } {
@@ -55,7 +56,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	for (int i = 0; i < gameObjects.size(); i++) {
 
 		Constants::UniformBufferObject ubo{};
-		ubo.lightPos = glm::vec3(0, 1, 5); //TODO: make light pos a variable
+		ubo.lightPos = Engine::lightPos; 
 		ubo.model = gameObjects[i].transform.mat4();
 		ubo.view = camera.getView();
 		ubo.proj = camera.getProjection();

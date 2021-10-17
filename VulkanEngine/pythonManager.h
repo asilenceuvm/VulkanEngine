@@ -77,6 +77,15 @@ namespace PythonManager {
 		return PyLong_FromLong(0);
 	}
 
+	static PyObject* change_light_pos(PyObject* self, PyObject* args) {
+		float posX, posY, posZ;
+		if (PyArg_ParseTuple(args, "fff", &posX, &posY, &posZ)) {
+			Engine::lightPos = glm::vec3(posX, posY, posZ);
+		}
+
+		return PyLong_FromLong(0);
+	}
+
 	static PyObject* get_tags(PyObject* self, PyObject* args) {
 		PyObject* listObj = PyList_New(Engine::gameObjects.size());
 		for (int i = 0; i < Engine::gameObjects.size(); i++) {
@@ -92,6 +101,7 @@ namespace PythonManager {
 		{ "change_translation", change_translation, METH_VARARGS, "test print method"},
 		{ "change_rotation", change_rotation, METH_VARARGS, "test print method"},
 		{ "get_tags", get_tags, METH_VARARGS, "test print method"},
+		{ "change_light_pos", change_light_pos, METH_VARARGS, "test print method"},
 		{ NULL, NULL, 0, NULL }
 	};
 

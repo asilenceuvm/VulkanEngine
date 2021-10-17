@@ -11,6 +11,7 @@ layout(binding = 1) uniform sampler2D texSampler;
 
 void main() {
     vec3 lightColor = vec3(1, 1, 1); //TODO: replace with passed in variable from c code
+
     // ambient
     float ambientStrength = 0.1;
     vec3 ambient = ambientStrength * lightColor * texture(texSampler, fragTexCoord).rgb;

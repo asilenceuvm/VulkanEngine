@@ -16,6 +16,7 @@ public:
 	int height = 600;
 
 	static std::vector<GameObject> gameObjects;
+	static glm::vec3 lightPos;
 
 	Engine();
 	~Engine();

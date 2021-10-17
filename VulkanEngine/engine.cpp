@@ -36,6 +36,7 @@
 
 
 std::vector<GameObject> Engine::gameObjects;
+glm::vec3 Engine::lightPos; //probably temporary
 
 Engine::Engine() {
 	loadGameObjects();
@@ -67,6 +68,8 @@ void Engine::loadGameObjects() {
 		gameObj2.transform.scale = glm::vec3(1.f);
 		gameObjects.push_back(std::move(gameObj2));
 	}
+
+	lightPos = glm::vec3(0, 1, 3);
 }
 
 
