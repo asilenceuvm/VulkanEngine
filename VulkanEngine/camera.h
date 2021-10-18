@@ -8,14 +8,16 @@
 class Camera {
 public:
 	void setProjection(float fov, float aspect, float near, float far);
-	const glm::mat4& getProjection() const { return proj; }
 
 	void moveCamForward(const float delta);
 	void moveCamBack(const float delta);
 	void moveCamLeft(const float delta);
 	void moveCamRight(const float delta);
 	void rotateCamera(float xoffset, float yoffset, float sensitivity);
+
+	const glm::mat4& getProjection() const { return proj; }
 	const glm::mat4& getView() const { return view; }
+	const glm::vec3& getCameraPos() const { return cameraPos; }
 
 private:
     glm::mat4 proj{ 1.f };

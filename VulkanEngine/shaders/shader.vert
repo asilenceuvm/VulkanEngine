@@ -10,6 +10,7 @@ layout(location = 0) out vec3 fragPos;
 layout(location = 1) out vec2 fragTexCoord;
 layout(location = 2) out vec3 normal;
 layout(location = 3) out vec3 lightPos;
+layout(location = 4) out vec3 viewPos;
 
 
 layout(binding = 0) uniform UniformBufferObject {
@@ -17,6 +18,7 @@ layout(binding = 0) uniform UniformBufferObject {
 	mat4 view;
 	mat4 proj;
 	vec3 lightPos;
+	vec3 viewPos;
 } ubo;
 
 void main() {

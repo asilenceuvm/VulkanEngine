@@ -33,6 +33,7 @@
 #include "camera.h"
 #include "inputManager.h"
 #include "pythonManager.h"
+#include "assetManager.h"
 
 
 std::vector<GameObject> Engine::gameObjects;
@@ -40,6 +41,7 @@ glm::vec3 Engine::lightPos; //probably temporary
 
 Engine::Engine() {
 	loadGameObjects();
+	renderer.loadDescriptorSets();
 
 	//tell python where to find c++ interaction methods 
 	PyImport_AppendInittab("engine", &PythonManager::PyInit_engine);
@@ -47,11 +49,15 @@ Engine::Engine() {
 
 Engine::~Engine() {
 	gameObjects.clear();
+	AssetManager::clearTextures();
 }
 
 void Engine::loadGameObjects() {
+	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
+	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
+
 	std::shared_ptr<Model> model =
-		Model::createModelFromFile(device, "models/backpack/backpack.obj");
+		Model::createModelFromFile(device, "models/backpack/backpack.obj", AssetManager::textures["backpack"]);
 
 	auto gameObj = GameObject::createGameObject("room");
 	gameObj.model = model;
@@ -60,11 +66,11 @@ void Engine::loadGameObjects() {
 	gameObjects.push_back(std::move(gameObj));
 
 	std::shared_ptr<Model> model2 =
-		Model::createModelFromFile(device, "models/apple.obj");
-	for (int i = 0; i < 10; i++) {
+		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
+	for (int i = 0; i < 5; i++) {
 		auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(i));
 		gameObj2.model = model2;
-		gameObj2.transform.translation = { 1.f, .0f + i, 2.5f };
+		gameObj2.transform.translation = { 1.f, .0f + i * 0.1f, 2.5f };
 		gameObj2.transform.scale = glm::vec3(1.f);
 		gameObjects.push_back(std::move(gameObj2));
 	}

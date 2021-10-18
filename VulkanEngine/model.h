@@ -9,6 +9,7 @@
 
 #include "device.h"
 #include "buffer.h"
+#include "texture.h"
 
 class Model {
 public:
@@ -34,7 +35,7 @@ public:
 	};
 
 
-	Model(Device &device, const Model::Geometry& geometry);
+	Model(Device &device, const Model::Geometry& geometry, std::shared_ptr<Texture> texture);
 	~Model();
 
 	//delete copy constructors
@@ -44,8 +45,9 @@ public:
 	void bind(VkCommandBuffer commandBuffer);
 	void draw(VkCommandBuffer commandBuffer);
 
-	static std::unique_ptr<Model> createModelFromFile(Device& device, const std::string& filepath);
+	static std::unique_ptr<Model> createModelFromFile(Device& device, const std::string& filepath, std::shared_ptr<Texture> texture);
 
+	std::shared_ptr<Texture> getTexture() { return texture; }
 private:
 	Device& device;
 
@@ -55,6 +57,8 @@ private:
 	bool hasIndexBuffer = false;
 	std::unique_ptr<Buffer> indexBuffer;
 	uint32_t indexCount;
+
+	std::shared_ptr<Texture> texture;
 
 
 	void createVertexBuffers(const std::vector<Vertex> &vertices);

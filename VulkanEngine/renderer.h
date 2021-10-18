@@ -24,10 +24,7 @@ public:
 	void endFrame();
 	void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 	void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
-
-	void createUniformBuffers();
-	void createDescriptorSets();
-	void updateDescriptorSets(int i);
+	void loadDescriptorSets();
 
 	//getters
 	VkRenderPass getSwapChainRenderPass() const { return swapchain->getRenderPass(); }
@@ -74,9 +71,8 @@ private:
 	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
-	//std::unique_ptr<Texture> texture;
-	Texture tex{ device, "textures/camel.jpg" };
 	VkSampler textureSampler;
+	bool loadDescriptors = false;
 
 	void createCommandBuffers();
 	void freeCommandBuffers();
@@ -84,5 +80,8 @@ private:
 	void createTextureSampler();
 	void createDescriptorPool();
 	void createDescriptorSetLayout();
+	void createUniformBuffers();
+	void createDescriptorSets();
+	void updateDescriptorSets(GameObject& gameObject);
 };
 

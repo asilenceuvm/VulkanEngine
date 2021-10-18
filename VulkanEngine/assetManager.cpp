@@ -7,12 +7,12 @@
 
 #include "utils.h"
 
-std::vector<std::shared_ptr<Texture>> AssetManager::textures;
+std::map<std::string, std::shared_ptr<Texture>> AssetManager::textures;
 
-void AssetManager::loadTexture(Device& device, std::string filepath, bool flipped) {
+void AssetManager::loadTexture(Device& device, std::string filepath, std::string name, bool flipped) {
 	stbi_set_flip_vertically_on_load(flipped);
 	std::shared_ptr<Texture> tex = std::make_shared<Texture>(device, filepath);
-	textures.push_back(tex);
+	textures.insert(std::pair<std::string, std::shared_ptr<Texture>>(name, tex));
 	spdlog::debug("Loaded {}", filepath);
 }
 

@@ -52,24 +52,25 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera, std::vector<VkDeviceMemory> uniformBuffersMemory, std::vector<VkDescriptorSet> descriptorSets) {
 	pipeline->bind(commandBuffer);
 
-	//for (auto& obj : gameObjects) {
-	for (int i = 0; i < gameObjects.size(); i++) {
+	for (auto& obj : gameObjects) {
+	//for (int i = 0; i < gameObjects.size(); i++) {
 
 		Constants::UniformBufferObject ubo{};
 		ubo.lightPos = Engine::lightPos; 
-		ubo.model = gameObjects[i].transform.mat4();
+		ubo.viewPos = camera.getCameraPos();
+		ubo.model = obj.transform.mat4();
 		ubo.view = camera.getView();
 		ubo.proj = camera.getProjection();
 
 		void* data;
-		vkMapMemory(device.device(), uniformBuffersMemory[i], 0, sizeof(ubo), 0, &data);
+		vkMapMemory(device.device(), uniformBuffersMemory[obj.getId()], 0, sizeof(ubo), 0, &data);
 			memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device.device(), uniformBuffersMemory[i]);
+		vkUnmapMemory(device.device(), uniformBuffersMemory[obj.getId()]);
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[i], 0, nullptr);
+		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[obj.getId()], 0, nullptr);
 
-		gameObjects[i].model->bind(commandBuffer);
-		gameObjects[i].model->draw(commandBuffer);
+		obj.model->bind(commandBuffer);
+		obj.model->draw(commandBuffer);
 	}
 }
 

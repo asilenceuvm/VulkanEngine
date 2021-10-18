@@ -18,12 +18,12 @@ template <>
 struct std::hash<Model::Vertex> {
 	size_t operator()(Model::Vertex const& vertex) const {
 		size_t seed = 0;
-		Utils::hashCombine(seed, vertex.position, vertex.color, vertex.texCoord);
+		Utils::hashCombine(seed, vertex.position, vertex.color, vertex.normal, vertex.texCoord);
 		return seed;
 	}
 };
 
-Model::Model(Device& device, const Model::Geometry& geometry) : device{ device } {
+Model::Model(Device& device, const Model::Geometry& geometry, std::shared_ptr<Texture> texture) : device{ device }, texture{ texture } {
 	createVertexBuffers(geometry.vertices);
 	createIndexBuffers(geometry.indices);
 }
@@ -47,10 +47,10 @@ void Model::bind(VkCommandBuffer commandBuffer) {
 	}
 }
 
-std::unique_ptr<Model> Model::createModelFromFile(Device& device, const std::string& filepath) {
+std::unique_ptr<Model> Model::createModelFromFile(Device& device, const std::string& filepath, std::shared_ptr<Texture> texture) {
 	Geometry geometry{};
 	geometry.loadModel(filepath);
-	return std::make_unique<Model>(device, geometry);
+	return std::make_unique<Model>(device, geometry, texture);
 }
 
 void Model::createVertexBuffers(const std::vector<Vertex>& vertices) {
