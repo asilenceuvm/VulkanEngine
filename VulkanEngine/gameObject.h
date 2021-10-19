@@ -6,6 +6,7 @@
 #include "glm/gtc/matrix_transform.hpp"
 
 #include "model.h"
+#include "particle.h"
 
 struct TransformComponent {
 	glm::vec3 translation{};
@@ -31,6 +32,8 @@ public:
 	std::shared_ptr<Model> model{};
 	glm::vec3 color{};
 	TransformComponent transform{};
+
+	Particle particle = Particle(1, glm::vec3{ 0.f, 0.f, 0.f });
 
 	static GameObject createGameObject(std::string tag) {
 		static id_t currentId = 0;

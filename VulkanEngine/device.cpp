@@ -76,7 +76,7 @@ Device::~Device() {
 
 void Device::createInstance() {
 	if (enableValidationLayers && !checkValidationLayerSupport()) {
-		spdlog::critical("Validation alyers requested but not found");
+		spdlog::critical("Validation layers requested but not found");
 		throw std::runtime_error("validation layers requested, but not available!");
 	}
 

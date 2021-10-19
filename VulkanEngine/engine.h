@@ -29,6 +29,8 @@ public:
 
 	void update();
 	void render();
+
+	void physics();
 private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };

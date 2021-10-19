@@ -220,6 +220,7 @@ pause</Command>
     <ClInclude Include="gameObject.h" />
     <ClInclude Include="inputManager.h" />
     <ClInclude Include="model.h" />
+    <ClInclude Include="particle.h" />
     <ClInclude Include="pipeline.h" />
     <ClInclude Include="pythonManager.h" />
     <ClInclude Include="renderer.h" />

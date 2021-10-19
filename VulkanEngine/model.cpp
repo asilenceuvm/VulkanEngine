@@ -130,6 +130,7 @@ void Model::Geometry::loadModel(const std::string& filepath) {
 	std::string warn, err;
 
 	if (!tinyobj::LoadObj(&attrib, &shapes, &materials, &warn, &err, filepath.c_str())) {
+		spdlog::critical("Error loading {}", filepath);
 		throw std::runtime_error(warn + err);
 	}
 

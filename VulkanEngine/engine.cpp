@@ -53,7 +53,7 @@ Engine::~Engine() {
 }
 
 void Engine::loadGameObjects() {
-	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
+	/*AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
 	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
 
 	std::shared_ptr<Model> model =
@@ -75,6 +75,19 @@ void Engine::loadGameObjects() {
 		gameObjects.push_back(std::move(gameObj2));
 	}
 
+	lightPos = glm::vec3(0, 1, 3);*/
+	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
+
+	std::shared_ptr<Model> model =
+		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
+	for (int i = 0; i < 5; i++) {
+		auto gameObj = GameObject::createGameObject("apple" + std::to_string(i));
+		gameObj.model = model;
+		gameObj.transform.translation = { 0.f, .0f + i * 0.1f, 0.f };
+		gameObj.transform.scale = glm::vec3(1.f);
+		gameObjects.push_back(std::move(gameObj));
+	}
+
 	lightPos = glm::vec3(0, 1, 3);
 }
 
@@ -90,6 +103,7 @@ void Engine::render() {
 }
 
 void Engine::update() {
+	Engine::physics();
 	//PythonManager::runUpdates();
 	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 100.f);
 	if (InputManager::keys[GLFW_KEY_W]) {
@@ -151,6 +165,15 @@ void Engine::run() {
 	}
 
 	vkDeviceWaitIdle(device.device());
+}
+
+//handles physics objects in scene
+void Engine::physics() {
+	for (auto& obj : gameObjects) {
+		glm::vec3 gravityAcceleration { 0.f, -0.0003f, 0.f };
+		obj.particle.velocity += obj.particle.force(gravityAcceleration);
+		obj.transform.translation += obj.particle.velocity;
+	}
 }
 
 //eventually should handle all shutdown procedures
