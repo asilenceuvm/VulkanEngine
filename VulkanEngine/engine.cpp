@@ -86,7 +86,7 @@ void Engine::loadGameObjects() {
 		gameObj.transform.translation = { 0.f, .0f + i * 0.1f, 0.f };
 		gameObj.transform.scale = glm::vec3(1.f);
 		gameObj.particle.linearVelocity = glm::vec3(0.001f * i, 0.f, 0.f);
-		gameObj.particle.angularVelocity = glm::vec3(1.f * i, 0.f, 0.f);
+		gameObj.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
 		gameObjects.push_back(std::move(gameObj));
 	}
 
@@ -172,11 +172,12 @@ void Engine::run() {
 //handles physics objects in scene
 void Engine::physics() {
 	for (auto& obj : gameObjects) {
-		glm::vec3 gravityAcceleration { 0.f, -0.0001f, 0.f };
-		obj.particle.computeForceAndTorque(gravityAcceleration);
+		glm::vec3 gravityAcceleration { 0.f, -0.00001f, 0.f };
+		glm::vec3 point{ obj.particle.shape.width / 2.f, obj.particle.shape.height / 2.f, obj.particle.shape.depth / 2.f };
+		obj.particle.computeForceAndTorque(gravityAcceleration, point * 50.f);
 		obj.particle.computeLinearAcceleration();
 		obj.particle.computeAngularAcceleration();
-		obj.transform.translation += obj.particle.linearVelocity;
+		//obj.transform.translation += obj.particle.linearVelocity;
 		obj.transform.rotation += obj.particle.angularVelocity;
 	}
 }

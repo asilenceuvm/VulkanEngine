@@ -1,6 +1,7 @@
 #pragma once
 
 #include "glm/glm.hpp"
+#include "glm/gtx/string_cast.hpp"
 
 typedef struct {
 	float width;
@@ -45,11 +46,12 @@ public:
 		shape->momentOfInertia = m * (w * w * h * h) / 12;
 	}
 
-	void computeForceAndTorque(glm::vec3 force) {
-		// r is the "arm vector" that goes from the center of mass to the point of force application
+	void computeForceAndTorque(glm::vec3 force, glm::vec3 point) {
 		this->force = force;
-		glm::vec3 r{ shape.width / 2.f, shape.height / 2.f, shape.depth / 2.f };
-		torque = glm::vec3 { r.x * force.x, r.y * force.y, r.z * force.z };
+		// point is the "arm vector" that goes from the center of mass to the point of force application
+		// That is to say {0,0,0} would be the center of mass, {shape.width / 2.f, shape.height / 2.f, shape.depth / 2.f} would be a corner
+		torque = glm::vec3 { point.x * (force.x + force.y + force.z), point.y * (force.x + force.y + force.z), point.z * (force.x + force.y + force.z) };
+		//std::cout << glm::to_string(torque) << std::endl;
 	}
 
 	void computeLinearAcceleration() {
