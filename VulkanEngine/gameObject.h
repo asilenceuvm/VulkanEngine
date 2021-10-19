@@ -33,7 +33,7 @@ public:
 	glm::vec3 color{};
 	TransformComponent transform{};
 
-	Particle particle = Particle(1, glm::vec3{ 0.f, 0.f, 0.f });
+	Particle particle = Particle(1, glm::vec3{ 0.f, 0.f, 0.f }, glm::vec3{ 0.f, 0.f, 0.f });
 
 	static GameObject createGameObject(std::string tag) {
 		static id_t currentId = 0;
