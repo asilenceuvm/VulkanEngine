@@ -29,7 +29,7 @@ public:
 	Pipeline(const Pipeline&) = delete;
 	Pipeline& operator=(const Pipeline&) = delete;
 
-	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo, bool cubemap);
+	static void defaultPipelineConfigInfo(PipelineConfigInfo& configInfo);
 	void bind(VkCommandBuffer commandBuffer);
 private:
 	Device& device;

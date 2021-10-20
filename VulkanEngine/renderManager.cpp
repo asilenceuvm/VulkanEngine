@@ -41,25 +41,52 @@ void RenderManager::createPipelineLayout(VkDescriptorSetLayout descriptorSetLayo
 	}
 }
 void RenderManager::createPipeline(VkRenderPass renderPass) {
+	//skybox
+	PipelineConfigInfo pipelineConfigCube{};
+	Pipeline::defaultPipelineConfigInfo(pipelineConfigCube);
+	pipelineConfigCube.renderPass = renderPass;
+	pipelineConfigCube.pipelineLayout = pipelineLayout;
+	pipelineConfigCube.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
+	pipelineConfigCube.depthStencilInfo.depthWriteEnable = VK_FALSE;
+	pipelineConfigCube.depthStencilInfo.depthTestEnable = VK_FALSE;
+	pipelines[0] = std::make_unique<Pipeline>(device, "shaders/cubemapvert.spv", "shaders/cubemapfrag.spv", pipelineConfigCube);
+
 	//3d objects
 	PipelineConfigInfo pipelineConfig{};
-	Pipeline::defaultPipelineConfigInfo(pipelineConfig, false);
+	Pipeline::defaultPipelineConfigInfo(pipelineConfig);
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
-	pipelines[0] = std::make_unique<Pipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfig);
+	pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 
-	//skybox
-	PipelineConfigInfo pipelineConfig2{};
-	Pipeline::defaultPipelineConfigInfo(pipelineConfig2, true);
-	pipelineConfig2.renderPass = renderPass;
-	pipelineConfig2.pipelineLayout = pipelineLayout;
-	pipelines[1] = std::make_unique<Pipeline>(device, "shaders/cubemapvert.spv", "shaders/cubemapfrag.spv", pipelineConfig2);
+	pipelineConfig.depthStencilInfo.depthWriteEnable = VK_TRUE;
+	pipelineConfig.depthStencilInfo.depthTestEnable = VK_TRUE;
+
+	pipelines[1] = std::make_unique<Pipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfig);
+
 }
 
 
 void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera, std::vector<VkDeviceMemory> uniformBuffersMemory, std::vector<VkDescriptorSet> descriptorSets) {
-	//game object pipeline
+	//cubemap
 	pipelines[0]->bind(commandBuffer);
+	Constants::CubeMapUBO ubo{};
+	//ubo.view = camera.getView();
+	ubo.view = glm::mat4(glm::mat3(camera.getView()));  
+	ubo.proj = camera.getProjection();
+
+	void* data;
+	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects.back().getId()], 0, sizeof(ubo), 0, &data);
+		memcpy(data, &ubo, sizeof(ubo));
+	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects.back().getId()]);
+
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects.back().getId()], 0, nullptr);
+
+	gameObjects.back().model->bind(commandBuffer);
+	gameObjects.back().model->draw(commandBuffer);
+
+	
+	//game object pipeline
+	pipelines[1]->bind(commandBuffer);
 	//for (auto& obj : gameObjects) {
 	for (int i = 0; i < gameObjects.size() - 1; i++) {
 		Constants::UniformBufferObject ubo{};
@@ -80,21 +107,5 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 		gameObjects[i].model->draw(commandBuffer);
 	}
 
-	//cubemap
-	pipelines[1]->bind(commandBuffer);
-	Constants::CubeMapUBO ubo{};
-	//ubo.view = camera.getView();
-	ubo.view = glm::mat4(glm::mat3(camera.getView()));  
-	ubo.proj = camera.getProjection();
-
-	void* data;
-	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects.back().getId()], 0, sizeof(ubo), 0, &data);
-		memcpy(data, &ubo, sizeof(ubo));
-	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects.back().getId()]);
-
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects.back().getId()], 0, nullptr);
-
-	gameObjects.back().model->bind(commandBuffer);
-	gameObjects.back().model->draw(commandBuffer);
 }
 
