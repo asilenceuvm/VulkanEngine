@@ -28,6 +28,9 @@
     <Filter Include="Source Files\gfx\vulkan">
       <UniqueIdentifier>{8abc7cb4-c50d-41de-81d3-35b759c7f47c}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\input">
+      <UniqueIdentifier>{7a60bf46-d799-4557-96f8-1bc48ac2e3b8}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -63,14 +66,14 @@
     <ClCompile Include="inputManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="texture.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="buffer.cpp">
       <Filter>Source Files\gfx\vulkan</Filter>
     </ClCompile>
     <ClCompile Include="assetManager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="texture.cpp">
+      <Filter>Source Files\gfx</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -107,16 +110,7 @@
     <ClInclude Include="renderer.h">
       <Filter>Header Files\gfx</Filter>
     </ClInclude>
-    <ClInclude Include="inputManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="pythonManager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="utils.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="texture.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="buffer.h">
@@ -128,12 +122,27 @@
     <ClInclude Include="assetManager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="texture.h">
+      <Filter>Header Files\gfx</Filter>
+    </ClInclude>
+    <ClInclude Include="inputManager.h">
+      <Filter>Header Files\input</Filter>
+    </ClInclude>
+    <ClInclude Include="pythonManager.h">
+      <Filter>Header Files\input</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\shader.frag">
       <Filter>Resource Files\shaders</Filter>
     </None>
     <None Include="shaders\shader.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\cubemapfrag.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\cubemapvert.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
   </ItemGroup>

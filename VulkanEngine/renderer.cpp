@@ -167,7 +167,21 @@ void Renderer::createUniformBuffers() {
     uniformBuffersMemory.resize(Engine::gameObjects.size());
 
     for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
-        device.createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+		if (i == Engine::gameObjects.size() - 1) {
+			device.createBuffer(sizeof(Constants::CubeMapUBO),
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+				uniformBuffers[i], 
+				uniformBuffersMemory[i]);
+		}
+		else {
+			device.createBuffer(bufferSize, 
+				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+				uniformBuffers[i], 
+				uniformBuffersMemory[i]);
+
+		}
     }
 }
 
@@ -217,7 +231,12 @@ void Renderer::updateDescriptorSets(GameObject& gameObject) {
 	VkDescriptorBufferInfo bufferInfo{};
 	bufferInfo.buffer = uniformBuffers[gameObject.getId()];
 	bufferInfo.offset = 0;
-	bufferInfo.range = sizeof(Constants::UniformBufferObject);
+	if (gameObject.getTag() == "skybox") {
+		bufferInfo.range = sizeof(Constants::CubeMapUBO);
+	}
+	else {
+		bufferInfo.range = sizeof(Constants::UniformBufferObject);
+	}
 
 	VkDescriptorImageInfo imageInfo{};
 	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

@@ -231,6 +231,8 @@ pause</Command>
     <ClInclude Include="window.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="shaders\cubemapfrag.frag" />
+    <None Include="shaders\cubemapvert.vert" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
   </ItemGroup>

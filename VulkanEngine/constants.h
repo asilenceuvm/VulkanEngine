@@ -15,4 +15,9 @@ namespace Constants {
 		alignas(16) glm::vec3 lightPos;
 		alignas(16) glm::vec3 viewPos;
 	};
+
+	struct CubeMapUBO {
+		alignas(16) glm::mat4 view;
+		alignas(16) glm::mat4 proj;
+	}; 
 }

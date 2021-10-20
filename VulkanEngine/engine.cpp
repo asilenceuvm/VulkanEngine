@@ -55,6 +55,15 @@ Engine::~Engine() {
 void Engine::loadGameObjects() {
 	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
 	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
+	std::array<std::string, 6> filepaths;
+	//right left top bottom front back
+	filepaths[0] = "textures/skybox/right.jpg";
+	filepaths[1] = "textures/skybox/left.jpg";
+	filepaths[2] = "textures/skybox/top.jpg";
+	filepaths[3] = "textures/skybox/bottom.jpg";
+	filepaths[4] = "textures/skybox/front.jpg";
+	filepaths[5] = "textures/skybox/back.jpg";
+	AssetManager::loadCubeMap(device, filepaths, "skybox");
 
 	std::shared_ptr<Model> model =
 		Model::createModelFromFile(device, "models/backpack/backpack.obj", AssetManager::textures["backpack"]);
@@ -74,6 +83,16 @@ void Engine::loadGameObjects() {
 		gameObj2.transform.scale = glm::vec3(1.f);
 		gameObjects.push_back(std::move(gameObj2));
 	}
+
+	std::shared_ptr<Model> model3 =
+		Model::createModelFromFile(device, "models/textured_cube.obj", AssetManager::textures["skybox"]);
+
+	auto gameObj3 = GameObject::createGameObject("skybox");
+	gameObj3.model = model3;
+	//gameObj3.transform.translation = { .0f, .0f, 0.f };
+	//gameObj3.transform.scale = glm::vec3(0.f);
+	gameObjects.push_back(std::move(gameObj3));
+
 
 	lightPos = glm::vec3(0, 1, 3);
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <memory>
+#include <array>
 #include <vector>
 
 #include "window.h"
@@ -23,7 +24,7 @@ public:
 	void renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera, std::vector<VkDeviceMemory> uniformBufferMemory, std::vector<VkDescriptorSet> descriptorSets);
 private:
 	Device& device;
-	std::unique_ptr<Pipeline> pipeline;
+	std::array<std::unique_ptr<Pipeline>, 2> pipelines;
 	VkPipelineLayout pipelineLayout;
 
 	void createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout);
