@@ -114,22 +114,8 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
 	configInfo.rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
 	configInfo.rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
 	configInfo.rasterizationInfo.lineWidth = 1.0f;
-	//configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-	//if (cubemap) { //cubemap shouldnt get its faces culled
-		//configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-		//configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-		//configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	//}
-	//else {
-//		configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-		//configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-		//configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	//}
-	//spdlog::debug("{}", configInfo.rasterizationInfo.cullMode);
 	configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
-	//1configInfo.rasterizationInfo.cullMode = VK_CULL_MODE_FRONT_BIT;
-	//configInfo.rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
 	configInfo.rasterizationInfo.depthBiasEnable = VK_FALSE;
 
 	configInfo.multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
