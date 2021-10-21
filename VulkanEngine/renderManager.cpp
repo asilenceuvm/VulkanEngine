@@ -67,6 +67,8 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 
 
 void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera, std::vector<VkDeviceMemory> uniformBuffersMemory, std::vector<VkDescriptorSet> descriptorSets) {
+	//TODO: rework multi pipeline system 
+
 	//cubemap
 	pipelines[0]->bind(commandBuffer);
 	Constants::CubeMapUBO ubo{};
@@ -75,11 +77,11 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	ubo.proj = camera.getProjection();
 
 	void* data;
-	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects.back().getId()], 0, sizeof(ubo), 0, &data);
+	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects.size() - 1], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
-	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects.back().getId()]);
+	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects.size() - 1]);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects.back().getId()], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects.size() - 1], 0, nullptr);
 
 	gameObjects.back().model->bind(commandBuffer);
 	gameObjects.back().model->draw(commandBuffer);

@@ -40,5 +40,8 @@ private:
 	void loadGameObjects();
 
 	void shutdown();
+
+	//temp
+	std::unique_ptr<Model> generateMesh(int length, int width, std::shared_ptr<Texture> texture);
 };
 
