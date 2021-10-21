@@ -143,8 +143,9 @@ void Engine::loadGameObjects() {
 	gameObj.transform.scale = glm::vec3(0.5f);
 	gameObjects.push_back(std::move(gameObj));
 
-	auto gameObj1 = GameObject::createGameObject("mesh");
-	gameObj1.model = generateMesh(15, 15, AssetManager::textures["camel"]);
+	auto gameObj1 = GameObject::createGameObject("water");
+	//gameObj1.model = generateMesh(15, 15, AssetManager::textures["camel"]);
+	gameObj1.model = generateMesh(15, 15, AssetManager::textures["skybox"]);
 	gameObjects.push_back(std::move(gameObj1));
 
 	std::shared_ptr<Model> model2 =

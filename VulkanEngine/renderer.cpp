@@ -161,7 +161,7 @@ void Renderer::recreateSwapChain() {
 }
 
 void Renderer::createUniformBuffers() {
-	VkDeviceSize bufferSize = sizeof(Constants::UniformBufferObject);
+	VkDeviceSize bufferSize = sizeof(Constants::ObjectUBO);
 
 	uniformBuffers.resize(Engine::gameObjects.size());
     uniformBuffersMemory.resize(Engine::gameObjects.size());
@@ -235,7 +235,7 @@ void Renderer::updateDescriptorSets(GameObject& gameObject) {
 		bufferInfo.range = sizeof(Constants::CubeMapUBO);
 	}
 	else {
-		bufferInfo.range = sizeof(Constants::UniformBufferObject);
+		bufferInfo.range = sizeof(Constants::ObjectUBO);
 	}
 
 	VkDescriptorImageInfo imageInfo{};

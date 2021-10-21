@@ -145,5 +145,11 @@
     <None Include="shaders\cubemapvert.vert">
       <Filter>Resource Files\shaders</Filter>
     </None>
+    <None Include="shaders\water.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\water.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

@@ -57,12 +57,16 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	pipelineConfig.renderPass = renderPass;
 	pipelineConfig.pipelineLayout = pipelineLayout;
 	pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
-
 	pipelineConfig.depthStencilInfo.depthWriteEnable = VK_TRUE;
 	pipelineConfig.depthStencilInfo.depthTestEnable = VK_TRUE;
-
 	pipelines[1] = std::make_unique<Pipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfig);
 
+	//water
+	PipelineConfigInfo pipelineConfigWater{};
+	Pipeline::defaultPipelineConfigInfo(pipelineConfigWater);
+	pipelineConfigWater.renderPass = renderPass;
+	pipelineConfigWater.pipelineLayout = pipelineLayout;
+	pipelines[2] = std::make_unique<Pipeline>(device, "shaders/watervert.spv", "shaders/waterfrag.spv", pipelineConfigWater);
 }
 
 
@@ -91,23 +95,46 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	pipelines[1]->bind(commandBuffer);
 	//for (auto& obj : gameObjects) {
 	for (int i = 0; i < gameObjects.size() - 1; i++) {
-		Constants::UniformBufferObject ubo{};
-		ubo.lightPos = Engine::lightPos; 
-		ubo.viewPos = camera.getCameraPos();
-		ubo.model = gameObjects[i].transform.mat4();
-		ubo.view = camera.getView();
-		ubo.proj = camera.getProjection();
+		if (gameObjects[i].getTag() != "water") {
+			Constants::ObjectUBO ubo{};
+			ubo.lightPos = Engine::lightPos;
+			ubo.viewPos = camera.getCameraPos();
+			ubo.model = gameObjects[i].transform.mat4();
+			ubo.view = camera.getView();
+			ubo.proj = camera.getProjection();
 
-		void* data;
-		vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[i].getId()], 0, sizeof(ubo), 0, &data);
+			void* data;
+			vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[i].getId()], 0, sizeof(ubo), 0, &data);
 			memcpy(data, &ubo, sizeof(ubo));
-		vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[i].getId()]);
+			vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[i].getId()]);
 
-		vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[i].getId()], 0, nullptr);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[i].getId()], 0, nullptr);
 
-		gameObjects[i].model->bind(commandBuffer);
-		gameObjects[i].model->draw(commandBuffer);
+			gameObjects[i].model->bind(commandBuffer);
+			gameObjects[i].model->draw(commandBuffer);
+		}
 	}
+
+	pipelines[2]->bind(commandBuffer);
+
+	auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "water"; });
+	auto index = std::distance(Engine::gameObjects.begin(), it);
+	Constants::ObjectUBO waterubo{};
+	waterubo.lightPos = Engine::lightPos;
+	waterubo.viewPos = camera.getCameraPos();
+	waterubo.model = gameObjects[index].transform.mat4();
+	waterubo.view = camera.getView();
+	waterubo.proj = camera.getProjection();
+
+	void* dataWater;
+	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(ubo), 0, &dataWater);
+	memcpy(dataWater, &ubo, sizeof(ubo));
+	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
+
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[index].getId()], 0, nullptr);
+
+	gameObjects[index].model->bind(commandBuffer);
+	gameObjects[index].model->draw(commandBuffer);
 
 }
 
