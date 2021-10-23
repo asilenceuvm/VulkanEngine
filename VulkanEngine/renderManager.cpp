@@ -119,16 +119,18 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 
 	auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "water"; });
 	auto index = std::distance(Engine::gameObjects.begin(), it);
+	//spdlog::debug("{}", index);
 	Constants::ObjectUBO waterubo{};
 	waterubo.lightPos = Engine::lightPos;
 	waterubo.viewPos = camera.getCameraPos();
 	waterubo.model = gameObjects[index].transform.mat4();
 	waterubo.view = camera.getView();
 	waterubo.proj = camera.getProjection();
+	waterubo.time = glfwGetTime();
 
 	void* dataWater;
-	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(ubo), 0, &dataWater);
-	memcpy(dataWater, &ubo, sizeof(ubo));
+	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(waterubo), 0, &dataWater);
+	memcpy(dataWater, &waterubo, sizeof(waterubo));
 	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[index].getId()], 0, nullptr);

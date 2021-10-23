@@ -13,6 +13,19 @@ layout(binding = 1) uniform samplerCube cubeSampler;
 void main() {
     vec3 I = normalize(fragPos - viewPos);
     vec3 R = reflect(I, normalize(normal));
-    //outColor = vec4(texture(cubeSampler, R).rgb, 1.0);
-    outColor = vec4(1, 1, 1, 1);
+    
+    // specular
+    vec3 lightDir = normalize(lightPos - fragPos);
+    vec3 norm = normalize(normal);
+    float specularStrength = 0.5;
+    vec3 viewDir = normalize(viewPos - fragPos);
+    vec3 reflectDir = reflect(-lightDir, norm);  
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
+    vec3 specular = specularStrength * spec * vec3(1,1,1);  
+
+    vec3 watercolor = vec3(0.0, 0.0, 0.9);
+    float reflectStrength = 0.5;
+    vec3 result = reflectStrength * texture(cubeSampler, R).rgb + watercolor + specular;
+
+    outColor = vec4(result, 1.0);
 }
