@@ -50,7 +50,7 @@ public:
 		this->force = force;
 		// point is the "arm vector" that goes from the center of mass to the point of force application
 		// That is to say {0,0,0} would be the center of mass, {shape.width / 2.f, shape.height / 2.f, shape.depth / 2.f} would be a corner
-		torque = glm::vec3 { point.x * (force.x + force.y + force.z), point.y * (force.x + force.y + force.z), point.z * (force.x + force.y + force.z) };
+		torque = glm::cross(force, point);
 		//std::cout << glm::to_string(torque) << std::endl;
 	}
 
