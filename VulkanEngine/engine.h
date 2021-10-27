@@ -31,6 +31,12 @@ public:
 	void render();
 
 	void physics();
+
+	void broadDetectionPhase();
+	int testAABBOverlap(std::vector<glm::vec3> box1, std::vector<glm::vec3> box2);
+	void narrowDetectionPhase(GameObject* obj1, GameObject* obj2);
+	int sphereSphereCollision(glm::vec3 center1, float radius1, glm::vec3 center2, float radius2);
+	void decayVecolities();
 private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };

@@ -17,7 +17,7 @@ public:
 	glm::vec3 linearVelocity{ 0.f, 0.f, 0.f };
 	glm::vec3 angularVelocity{ 0.f, 0.f, 0.f };
 	/* --- Physics Properties --- */
-	float drag = 0;
+	float drag = 0.001f;
 	float angular_drag = 0;
 	BoxShape shape;
 	/* --- Object Locking ---

@@ -80,15 +80,33 @@ void Engine::loadGameObjects() {
 
 	std::shared_ptr<Model> model =
 		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
-	for (int i = 0; i < 5; i++) {
-		auto gameObj = GameObject::createGameObject("apple" + std::to_string(i));
-		gameObj.model = model;
-		gameObj.transform.translation = { 0.f, .0f + i * 0.1f, 0.f };
-		gameObj.transform.scale = glm::vec3(1.f);
-		gameObj.particle.linearVelocity = glm::vec3(0.001f * i, 0.f, 0.f);
-		gameObj.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
-		gameObjects.push_back(std::move(gameObj));
+	// Make a triangle of objects
+	for (int i = 0; i < 4; i++) {
+		for (int j = i; j < 4; j++) {
+			auto gameObj1 = GameObject::createGameObject("apple" + std::to_string(i) + std::to_string(j));
+			gameObj1.model = model;
+			gameObj1.transform.translation = { 0.f + i*0.1f, 0.f + j*0.1f - i*0.1f, 0.f };
+			gameObj1.transform.scale = glm::vec3(1.f);
+			gameObj1.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+			gameObj1.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+			gameObjects.push_back(std::move(gameObj1));
+		}
 	}
+	/*auto gameObj1 = GameObject::createGameObject("apple" + std::to_string(0));
+	gameObj1.model = model;
+	gameObj1.transform.translation = { -0.7f, -0.08f, 0.f };
+	gameObj1.transform.scale = glm::vec3(1.f);
+	gameObj1.particle.linearVelocity = glm::vec3(0.005f, 0.f, 0.f);
+	gameObj1.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjects.push_back(std::move(gameObj1));*/
+
+	auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(0));
+	gameObj2.model = model;
+	gameObj2.transform.translation = { -0.75f, -0.75f, 0.f };
+	gameObj2.transform.scale = glm::vec3(1.f);
+	gameObj2.particle.linearVelocity = glm::vec3(0.0075f, 0.0075f, 0.f);
+	gameObj2.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjects.push_back(std::move(gameObj2));
 
 	lightPos = glm::vec3(0, 1, 3);
 }
@@ -169,16 +187,124 @@ void Engine::run() {
 	vkDeviceWaitIdle(device.device());
 }
 
-//handles physics objects in scene
+// Handles physics objects in scene
 void Engine::physics() {
+	// Check for collisions
+	decayVecolities();
+	broadDetectionPhase();
 	for (auto& obj : gameObjects) {
-		glm::vec3 gravityAcceleration { 0.f, -0.00001f, 0.f };
+		// Gravity vector
+		glm::vec3 gravityAcceleration{ 0.f, 0.f, 0.f };//-0.000005f, 0.f };
+		// Gravity applied directly on top (Top center)
 		glm::vec3 point{ 0.f, obj.particle.shape.width / 2.f, 0.f };
+		// Compute the force and torque of the gravity applied on top of object
 		obj.particle.computeForceAndTorque(gravityAcceleration, point * 50.f);
+		// Compute the object's accelerations
 		obj.particle.computeLinearAcceleration();
 		obj.particle.computeAngularAcceleration();
-		//obj.transform.translation += obj.particle.linearVelocity;
+		// Translate and rotate the object
+		obj.transform.translation += obj.particle.linearVelocity;
 		obj.transform.rotation += obj.particle.angularVelocity;
+	}
+}
+
+// Detect potential collisions using axis-aligend bounding boxes (AABB)
+void Engine::broadDetectionPhase() {
+	for (auto& obj1 : gameObjects) {
+		for (auto& obj2 : gameObjects) {
+			// Ensure the objects aren't the same object
+			if (obj1.getId() != obj2.getId()) {
+				std::vector box1{ obj1.transform.translation - obj1.particle.shape.width, obj1.transform.translation + obj1.particle.shape.width };
+				std::vector box2{ obj2.transform.translation - obj2.particle.shape.width, obj2.transform.translation + obj2.particle.shape.width };
+				if (Engine::testAABBOverlap(box1, box2)) {
+					Engine::narrowDetectionPhase(&obj1, &obj2);
+				}
+			}
+		}
+	}
+}
+
+// Find deltas for x, y, and z by subtracting max from min
+// TODO: Make more efficient by implementing Sort and Sweep Algorithm (Used by Bullet)
+int Engine::testAABBOverlap(std::vector<glm::vec3> box1, std::vector<glm::vec3> box2) {
+	float d1x = box1[0].x - box2[1].x;
+	float d1y = box1[0].y - box2[1].y;
+	float d1z = box1[0].z - box2[1].z;
+	float d2x = box2[0].x - box1[1].x;
+	float d2y = box2[0].y - box1[1].y;
+	float d2z = box2[0].z - box1[1].z;
+
+	//std::cout << box1[0].x << "," << box1[0].y << "," << box1[0].z << std::endl;
+	//std::cout << box1[1].x << "," << box1[1].y << "," << box1[1].z << std::endl;
+
+	// Check for overlapping bounding boxes
+	if (d1x > 0.f || d1y > 0.f || d1z > 0.f) {
+		// No collision found
+		return 0;
+	}
+	if (d2x > 0.f || d2y > 0.f || d2z > 0.f) {
+		// No collision found
+		return 0;
+	}
+	// Possible collision found
+	return 1;
+}
+
+void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
+	// If both objects are spheres
+	int colliding = Engine::sphereSphereCollision(obj1->transform.translation, 0.05f, obj2->transform.translation, 0.05f);
+	//std::cout << colliding << std::endl;
+	if (colliding) {
+		glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
+		normalizedDirection = glm::normalize(normalizedDirection);
+		// Compute forces and torques for colliding objects
+		glm::vec3 computedForceObj1{ obj2->particle.linearVelocity.x - obj1->particle.linearVelocity.x, obj2->particle.linearVelocity.y - obj1->particle.linearVelocity.y, obj2->particle.linearVelocity.z - obj1->particle.linearVelocity.z };
+		glm::vec3 computedForceObj2{ obj1->particle.linearVelocity.x - obj2->particle.linearVelocity.x, obj1->particle.linearVelocity.y - obj2->particle.linearVelocity.y, obj1->particle.linearVelocity.z - obj2->particle.linearVelocity.z };
+		//std::cout << "---- Debug Information ----" << std::endl;
+		//std::cout << "Computed Forces (Pre-normalization)" << std::endl;
+		//std::cout << computedForceObj1.x << "," << computedForceObj1.y << "," << computedForceObj1.z << std::endl;
+		//std::cout << computedForceObj2.x << "," << computedForceObj2.y << "," << computedForceObj2.z << std::endl;
+		computedForceObj1 = (computedForceObj1.x + computedForceObj1.y + computedForceObj1.z)/3.f * normalizedDirection;
+		computedForceObj2 = (computedForceObj2.x + computedForceObj2.y + computedForceObj2.z)/3.f * normalizedDirection;
+		//std::cout << "Linear Velocities" << std::endl;
+		//std::cout << obj1->particle.linearVelocity.x << "," << obj1->particle.linearVelocity.y << "," << obj1->particle.linearVelocity.z << std::endl;
+		//std::cout << obj2->particle.linearVelocity.x << "," << obj2->particle.linearVelocity.y << "," << obj2->particle.linearVelocity.z << std::endl;
+		//std::cout << "Normal Direction" << std::endl;
+		//std::cout << normalizedDirection.x << "," << normalizedDirection.y << "," << normalizedDirection.z << std::endl;
+		//std::cout << "Computed Forces (Post-normalization)" << std::endl;
+		//std::cout << computedForceObj1.x << "," << computedForceObj1.y << "," << computedForceObj1.z << std::endl;
+		//std::cout << computedForceObj2.x << "," << computedForceObj2.y << "," << computedForceObj2.z << std::endl;
+		obj1->particle.computeForceAndTorque(computedForceObj1, glm::vec3{ -0.5f,-0.5f,0.f });
+		obj2->particle.computeForceAndTorque(computedForceObj2, glm::vec3{ 0.5f,0.5f,0.f });
+		// Compute new accelerations after collision
+		obj1->particle.computeLinearAcceleration();
+		obj1->particle.computeAngularAcceleration();
+		obj2->particle.computeLinearAcceleration();
+		obj2->particle.computeAngularAcceleration();
+		// Transform and rotate objects
+		obj1->transform.translation += obj1->particle.linearVelocity;
+		obj1->transform.rotation += obj1->particle.angularVelocity;
+		obj2->transform.translation += obj2->particle.linearVelocity;
+		obj2->transform.rotation += obj2->particle.angularVelocity;
+	}
+}
+
+int Engine::sphereSphereCollision(glm::vec3 center1, float radius1, glm::vec3 center2, float radius2) {
+	float x = center1.x - center2.x;
+	float y = center1.y - center2.y;
+	float z = center1.z - center2.z;
+	float squaredCenterDistance = x * x + y * y + z * z;
+	float r = radius1 + radius2;
+	float rSquared = r * r;
+	if (squaredCenterDistance <= rSquared) {
+		return 1;
+	}
+	return 0;
+}
+
+void Engine::decayVecolities() {
+	for (auto& obj : gameObjects) {
+		obj.particle.linearVelocity = obj.particle.linearVelocity - (obj.particle.linearVelocity * obj.particle.drag);
 	}
 }
 
