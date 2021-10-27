@@ -116,6 +116,14 @@ void Engine::loadGameObjects() {
 	gameObj3.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjects.push_back(std::move(gameObj3));
 
+	auto gameObjPlayable = GameObject::createGameObject("player_apple");
+	gameObjPlayable.model = model;
+	gameObjPlayable.transform.translation = { -0.5f, 0.5f, 0.f };
+	gameObjPlayable.transform.scale = glm::vec3(1.f);
+	gameObjPlayable.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjects.push_back(std::move(gameObjPlayable));
+
 	lightPos = glm::vec3(0, 1, 3);
 }
 
@@ -151,17 +159,38 @@ void Engine::update() {
 	InputManager::yoffset = 0;
 
 	// Apple velocity/acceleration changing
+	/*for (auto& obj : gameObjects) {
+		if (obj.getTag() == "player_apple") {
+			obj.particle.linearVelocity = glm::vec3{ 0.f, 0.f, 0.f };
+		}
+	}*/
 	if (InputManager::keys[GLFW_KEY_T]) {
-		camera.moveCamForward(.05f);
+		for (auto& obj : gameObjects) {
+			if (obj.getTag() == "player_apple") {
+				obj.particle.linearVelocity += glm::vec3{0.f, 0.0001f, 0.f};
+			}
+		}
 	}
 	if (InputManager::keys[GLFW_KEY_G]) {
-		camera.moveCamBack(.05f);
+		for (auto& obj : gameObjects) {
+			if (obj.getTag() == "player_apple") {
+				obj.particle.linearVelocity += glm::vec3{ 0.f, -0.0001f, 0.f };
+			}
+		}
 	}
 	if (InputManager::keys[GLFW_KEY_F]) {
-		camera.moveCamLeft(.05f);
+		for (auto& obj : gameObjects) {
+			if (obj.getTag() == "player_apple") {
+				obj.particle.linearVelocity += glm::vec3{ -0.0001f, 0.f, 0.f };
+			}
+		}
 	}
 	if (InputManager::keys[GLFW_KEY_H]) {
-		camera.moveCamRight(.05f);
+		for (auto& obj : gameObjects) {
+			if (obj.getTag() == "player_apple") {
+				obj.particle.linearVelocity += glm::vec3{ 0.0001f, 0.f, 0.f };
+			}
+		}
 	}
 
 	if (InputManager::keys[GLFW_KEY_ESCAPE]) {

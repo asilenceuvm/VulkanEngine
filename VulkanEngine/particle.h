@@ -27,6 +27,9 @@ public:
 	/* --- Other Properties --- */
 	glm::vec3 force{ 0.f, 0.f ,0.f };
 	glm::vec3 torque{ 0.f, 0.f ,0.f };
+	/* --- Numbers to Change for Realism --- */
+	float dragMultiplier = 30.f;
+	float gravityMultipler = 0.000005f;
 	
 
 	Particle(float mass, glm::vec3 initialVelocity, glm::vec3 initialAngular) {
@@ -61,7 +64,7 @@ public:
 
 	void computeAngularAcceleration() {
 		glm::vec3 angularAcceleration{ torque.x / shape.momentOfInertia, torque.y / shape.momentOfInertia, torque.z / shape.momentOfInertia };
-		angularVelocity += angularAcceleration * 30.f;
+		angularVelocity += angularAcceleration * dragMultiplier;
 	}
 
 private:
