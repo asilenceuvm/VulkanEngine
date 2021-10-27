@@ -67,6 +67,13 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	pipelineConfigWater.renderPass = renderPass;
 	pipelineConfigWater.pipelineLayout = pipelineLayout;
 	pipelines[2] = std::make_unique<Pipeline>(device, "shaders/watervert.spv", "shaders/waterfrag.spv", pipelineConfigWater);
+
+
+	PipelineConfigInfo pipelineConfigTerrain{};
+	Pipeline::defaultPipelineConfigInfo(pipelineConfigTerrain);
+	pipelineConfigTerrain.renderPass = renderPass;
+	pipelineConfigTerrain.pipelineLayout = pipelineLayout;
+	pipelines[3] = std::make_unique<Pipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfigTerrain, "shaders/tese.spv", "shaders/tesc.spv");
 }
 
 
@@ -75,17 +82,18 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 
 	//cubemap
 	pipelines[0]->bind(commandBuffer);
+	auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "skybox"; });
+	auto index = std::distance(Engine::gameObjects.begin(), it);
 	Constants::CubeMapUBO ubo{};
-	//ubo.view = camera.getView();
 	ubo.view = glm::mat4(glm::mat3(camera.getView()));  
 	ubo.proj = camera.getProjection();
 
 	void* data;
-	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects.size() - 1], 0, sizeof(ubo), 0, &data);
+	vkMapMemory(device.device(), uniformBuffersMemory[index], 0, sizeof(ubo), 0, &data);
 		memcpy(data, &ubo, sizeof(ubo));
-	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects.size() - 1]);
+	vkUnmapMemory(device.device(), uniformBuffersMemory[index]);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects.size() - 1], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[index], 0, nullptr);
 
 	gameObjects.back().model->bind(commandBuffer);
 	gameObjects.back().model->draw(commandBuffer);
@@ -94,8 +102,10 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	//game object pipeline
 	pipelines[1]->bind(commandBuffer);
 	//for (auto& obj : gameObjects) {
-	for (int i = 0; i < gameObjects.size() - 1; i++) {
-		if (gameObjects[i].getTag() != "water") {
+	for (int i = 0; i < gameObjects.size(); i++) {
+		if (gameObjects[i].getTag() != "water" && 
+				gameObjects[i].getTag() != "skybox" &&
+				gameObjects[i].getTag() != "terrain") {
 			Constants::ObjectUBO ubo{};
 			ubo.lightPos = Engine::lightPos;
 			ubo.viewPos = camera.getCameraPos();
@@ -115,11 +125,10 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 		}
 	}
 
+	//water 
 	pipelines[2]->bind(commandBuffer);
-
-	auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "water"; });
-	auto index = std::distance(Engine::gameObjects.begin(), it);
-	//spdlog::debug("{}", index);
+	it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "water"; });
+	index = std::distance(Engine::gameObjects.begin(), it);
 	Constants::ObjectUBO waterubo{};
 	waterubo.lightPos = Engine::lightPos;
 	waterubo.viewPos = camera.getCameraPos();
@@ -138,5 +147,25 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	gameObjects[index].model->bind(commandBuffer);
 	gameObjects[index].model->draw(commandBuffer);
 
+	//terrain 
+	pipelines[3]->bind(commandBuffer);
+	it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "terrain"; });
+	index = std::distance(Engine::gameObjects.begin(), it);
+	Constants::TesselationUBO tesselationUBO{};
+
+	tesselationUBO.projection = camera.getProjection();
+	tesselationUBO.modelview = camera.getView() * gameObjects[index].transform.mat4();
+	tesselationUBO.lightPos = glm::vec4(Engine::lightPos, 1); 
+	tesselationUBO.viewportDim = glm::vec2((float)800, (float)600);
+
+	void* dataTess;
+	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(tesselationUBO), 0, &dataTess);
+	memcpy(dataTess, &waterubo, sizeof(waterubo));
+	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
+
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[index].getId()], 0, nullptr);
+
+	gameObjects[index].model->bind(commandBuffer);
+	gameObjects[index].model->draw(commandBuffer);
 }
 

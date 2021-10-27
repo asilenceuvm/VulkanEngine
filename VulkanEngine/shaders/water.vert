@@ -104,10 +104,11 @@ void main() {
 
 	//vec3 norm = inNormal;
 	//normal = mat3(transpose(inverse(ubo.model))) * norm;  
-	vec4 waveA = vec4(1,1,0.5,20);
-	vec4 waveB = vec4(0,1,0.4,15);
-	vec4 waveC = vec4(1,0,0.2,21);
+	vec4 waveA = vec4(1,1,0.3,13);
+	vec4 waveB = vec4(0,1,0.2,15);
+	vec4 waveC = vec4(1,0,0.1,18);
 	vec4 waveD = vec4(0.3,0.7,0.1,5);
+	vec4 waveE = vec4(1,1,0.2,5);
 	
 	vec3 tangent = vec3(1, 0, 0);
 	vec3 binormal = vec3(0, 0, 1);

@@ -8,7 +8,12 @@
 #include "model.h"
 
 
-Pipeline::Pipeline(Device& device, const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo) : device(device){
+Pipeline::Pipeline(Device& device, 
+		const std::string& vertFilepath, 
+		const std::string& fragFilepath, 
+		const PipelineConfigInfo& configInfo,
+		const std::string& teseFilepath, 
+		const std::string& tescFilepath) : device(device){
 	createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
 }
 
@@ -18,7 +23,11 @@ Pipeline::~Pipeline() {
 	vkDestroyPipeline(device.device(), graphicsPipeline, nullptr);
 }
 
-void Pipeline::createGraphicsPipeline(const std::string& vertFilepath, const std::string& fragFilepath, const PipelineConfigInfo& configInfo) {
+void Pipeline::createGraphicsPipeline(const std::string& vertFilepath, 
+		const std::string& fragFilepath, 
+		const PipelineConfigInfo& configInfo,
+		const std::string& teseFilepath, 
+		const std::string& tescFilepath) {
 	if (configInfo.pipelineLayout == VK_NULL_HANDLE) {
 		spdlog::critical("Failed to find pipelinelayout in config info");
 		throw std::runtime_error("createGraphicsPipeline");
@@ -27,28 +36,60 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath, const std
 		spdlog::critical("Failed to find renderpass in config info");
 		throw std::runtime_error("createGraphicsPipeline");
 	}
+
+
+	std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 	auto vertCode = readFile(vertFilepath);
 	auto fragCode = readFile(fragFilepath);
-
 	createShaderModule(vertCode, &vertShaderModule);
 	createShaderModule(fragCode, &fragShaderModule);
 
-	VkPipelineShaderStageCreateInfo shaderStages[2];
-	shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
-	shaderStages[0].module = vertShaderModule;
-	shaderStages[0].pName = "main";
-	shaderStages[0].flags = 0;
-	shaderStages[0].pNext = nullptr;
-	shaderStages[0].pSpecializationInfo = nullptr;
-	shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	shaderStages[1].module = fragShaderModule;
-	shaderStages[1].pName = "main";
-	shaderStages[1].flags = 0;
-	shaderStages[1].pNext = nullptr;
-	shaderStages[1].pSpecializationInfo = nullptr;
+	VkPipelineShaderStageCreateInfo vertShaderStage{};
+	vertShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	vertShaderStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	vertShaderStage.module = vertShaderModule;
+	vertShaderStage.pName = "main";
+	vertShaderStage.flags = 0;
+	vertShaderStage.pNext = nullptr;
+	vertShaderStage.pSpecializationInfo = nullptr;
+	shaderStages.push_back(vertShaderStage);
 
+	VkPipelineShaderStageCreateInfo fragShaderStage{};
+	fragShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fragShaderStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fragShaderStage.module = fragShaderModule;
+	fragShaderStage.pName = "main";
+	fragShaderStage.flags = 0;
+	fragShaderStage.pNext = nullptr;
+	fragShaderStage.pSpecializationInfo = nullptr;
+	shaderStages.push_back(fragShaderStage);
+
+	if (teseFilepath != "") {
+		auto tescCode = readFile(tescFilepath);
+		auto teseCode = readFile(teseFilepath);
+		createShaderModule(tescCode, &tescShaderModule);
+		createShaderModule(teseCode, &teseShaderModule);
+
+		VkPipelineShaderStageCreateInfo tescShaderStage{};
+		tescShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		tescShaderStage.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+		tescShaderStage.module = fragShaderModule;
+		tescShaderStage.pName = "main";
+		tescShaderStage.flags = 0;
+		tescShaderStage.pNext = nullptr;
+		tescShaderStage.pSpecializationInfo = nullptr;
+		shaderStages.push_back(tescShaderStage);
+
+		VkPipelineShaderStageCreateInfo teseShaderStage{};
+		teseShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+		teseShaderStage.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+		teseShaderStage.module = vertShaderModule;
+		teseShaderStage.pName = "main";
+		teseShaderStage.flags = 0;
+		teseShaderStage.pNext = nullptr;
+		teseShaderStage.pSpecializationInfo = nullptr;
+		shaderStages.push_back(teseShaderStage);
+	}
 
 	auto bindingDescriptions = Model::Vertex::getBindingDescriptions();
 	auto attributeDescriptions = Model::Vertex::getAttributeDescriptions();
@@ -62,8 +103,8 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath, const std
 
 	VkGraphicsPipelineCreateInfo pipelineInfo{};
 	pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-	pipelineInfo.stageCount = 2;
-	pipelineInfo.pStages = shaderStages;
+	pipelineInfo.stageCount = shaderStages.size();
+	pipelineInfo.pStages = shaderStages.data();
 	pipelineInfo.pVertexInputState = &vertexInputInfo;
 	pipelineInfo.pInputAssemblyState = &configInfo.inputAssemblyInfo;
 	pipelineInfo.pViewportState = &configInfo.viewportInfo;
@@ -72,6 +113,13 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath, const std
 	pipelineInfo.pColorBlendState = &configInfo.colorBlendInfo;
 	pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
 	pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
+	if (teseFilepath != "") {
+		VkPipelineTessellationStateCreateInfo pipelineTessellationStateCreateInfo {};
+		pipelineTessellationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
+		pipelineTessellationStateCreateInfo.patchControlPoints = 4;
+		;
+		pipelineInfo.pTessellationState = &pipelineTessellationStateCreateInfo;
+	}
 
 	pipelineInfo.layout = configInfo.pipelineLayout;
 	pipelineInfo.renderPass = configInfo.renderPass;

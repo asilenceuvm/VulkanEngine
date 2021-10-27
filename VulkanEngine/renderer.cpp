@@ -12,27 +12,12 @@
 
 
 Renderer::Renderer(Window& window, Device& device) : window(window), device(device) {
-	createDescriptorSetLayout();
 	recreateSwapChain();
 	createCommandBuffers();
 }
 
 Renderer::~Renderer() {
-	vkDestroySampler(device.device(), textureSampler, nullptr);
-	vkDestroyDescriptorSetLayout(device.device(), descriptorSetLayout, nullptr);
-	for (size_t i = 0; i < uniformBuffers.size(); i++) {
-        vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
-        vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
-    }
-	vkDestroyDescriptorPool(device.device(), descriptorPool, nullptr);
 	freeCommandBuffers();
-}
-
-void Renderer::loadDescriptorSets() {
-	loadDescriptors = true;
-	createUniformBuffers();
-	createDescriptorPool();
-	createDescriptorSets();
 }
 
 VkCommandBuffer Renderer::beginFrame() {
@@ -153,158 +138,10 @@ void Renderer::recreateSwapChain() {
 		}
 	}
 	if (loadDescriptors) {
-		createUniformBuffers();
-		createDescriptorPool();
-		createDescriptorSets();
+		//createDescriptorPool();
+		//createDescriptorSets();
 	}
 
 }
 
-void Renderer::createUniformBuffers() {
-	VkDeviceSize bufferSize = sizeof(Constants::ObjectUBO);
 
-	uniformBuffers.resize(Engine::gameObjects.size());
-    uniformBuffersMemory.resize(Engine::gameObjects.size());
-
-    for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
-		if (i == Engine::gameObjects.size() - 1) {
-			device.createBuffer(sizeof(Constants::CubeMapUBO),
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-				uniformBuffers[i], 
-				uniformBuffersMemory[i]);
-		}
-		else {
-			device.createBuffer(bufferSize, 
-				VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-				VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-				uniformBuffers[i], 
-				uniformBuffersMemory[i]);
-
-		}
-    }
-}
-
-void Renderer::createTextureSampler() {
-	VkSamplerCreateInfo samplerInfo{};
-
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_LINEAR;
-	samplerInfo.minFilter = VK_FILTER_LINEAR;
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-	samplerInfo.anisotropyEnable = VK_TRUE;
-	samplerInfo.maxAnisotropy = device.properties.limits.maxSamplerAnisotropy;
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;
-	samplerInfo.compareEnable = VK_FALSE;
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-
-	if (vkCreateSampler(device.device(), &samplerInfo, nullptr, &textureSampler) != VK_SUCCESS) {
-		spdlog::critical("Failed to create texture sampler");
-	}
-}
-
-void Renderer::createDescriptorSets() {
-	createTextureSampler();
-	std::vector<VkDescriptorSetLayout> layouts(Engine::gameObjects.size(), descriptorSetLayout);
-	VkDescriptorSetAllocateInfo allocInfo{};
-	allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-	allocInfo.descriptorPool = descriptorPool;
-	allocInfo.descriptorSetCount = static_cast<uint32_t>(Engine::gameObjects.size());
-	allocInfo.pSetLayouts = layouts.data();
-
-	descriptorSets.resize(Engine::gameObjects.size());
-	if (vkAllocateDescriptorSets(device.device(), &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
-		throw std::runtime_error("Failed to allocate descriptor sets");
-	}
-
-	for (auto& obj : Engine::gameObjects){
-		updateDescriptorSets(obj);
-	}
-}
-
-//int i is the descriptor set to update
-void Renderer::updateDescriptorSets(GameObject& gameObject) {
-	VkDescriptorBufferInfo bufferInfo{};
-	bufferInfo.buffer = uniformBuffers[gameObject.getId()];
-	bufferInfo.offset = 0;
-	if (gameObject.getTag() == "skybox") {
-		bufferInfo.range = sizeof(Constants::CubeMapUBO);
-	}
-	else {
-		bufferInfo.range = sizeof(Constants::ObjectUBO);
-	}
-
-	VkDescriptorImageInfo imageInfo{};
-	imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-	imageInfo.sampler = textureSampler; 
-	imageInfo.imageView = gameObject.model->getTexture()->getImageView();
-
-	std::array<VkWriteDescriptorSet, 2> descriptorWrites{};
-
-	descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[0].dstSet = descriptorSets[gameObject.getId()];
-	descriptorWrites[0].dstBinding = 0;
-	descriptorWrites[0].dstArrayElement = 0;
-	descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	descriptorWrites[0].descriptorCount = 1;
-	descriptorWrites[0].pBufferInfo = &bufferInfo;
-
-	descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	descriptorWrites[1].dstSet = descriptorSets[gameObject.getId()];
-	descriptorWrites[1].dstBinding = 1;
-	descriptorWrites[1].dstArrayElement = 0;
-	descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	descriptorWrites[1].descriptorCount = 1;
-	descriptorWrites[1].pImageInfo = &imageInfo;
-
-	vkUpdateDescriptorSets(device.device(), static_cast<uint32_t>(descriptorWrites.size()), descriptorWrites.data(), 0, nullptr);
-
-}
-
-void Renderer::createDescriptorPool() {
-	std::array<VkDescriptorPoolSize, 2> poolSizes{};
-	poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	poolSizes[0].descriptorCount = static_cast<uint32_t>(Engine::gameObjects.size());
-	poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	poolSizes[1].descriptorCount = static_cast<uint32_t>(Engine::gameObjects.size());
-
-	VkDescriptorPoolCreateInfo poolInfo{};
-	poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-	poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-	poolInfo.pPoolSizes = poolSizes.data();
-	poolInfo.maxSets = static_cast<uint32_t>(Engine::gameObjects.size());
-
-	if (vkCreateDescriptorPool(device.device(), &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
-		spdlog::critical("Failed to create descriptor pool");
-	}
-}
-
-void Renderer::createDescriptorSetLayout() {
-	VkDescriptorSetLayoutBinding uboLayoutBinding{};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-	uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-
-	VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-	samplerLayoutBinding.binding = 1;
-	samplerLayoutBinding.descriptorCount = 1;
-	samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	samplerLayoutBinding.pImmutableSamplers = nullptr;
-	samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-
-	std::array<VkDescriptorSetLayoutBinding, 2> bindings = {uboLayoutBinding, samplerLayoutBinding};
-	VkDescriptorSetLayoutCreateInfo layoutInfo{};
-	layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-	layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-	layoutInfo.pBindings = bindings.data();
-
-	if (vkCreateDescriptorSetLayout(device.device(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-		spdlog::critical("Failed to create descriptor set layout");
-	}
-
-}

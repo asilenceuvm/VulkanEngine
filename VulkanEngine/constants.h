@@ -21,4 +21,15 @@ namespace Constants {
 		alignas(16) glm::mat4 view;
 		alignas(16) glm::mat4 proj;
 	}; 
+
+	struct TesselationUBO {
+		alignas(16) glm::mat4 projection;
+		alignas(16) glm::mat4 modelview;
+		alignas(16) glm::vec4 lightPos;
+		alignas(16) glm::vec4 frustumPlanes[6];
+		alignas(16) float displacementFactor;
+		alignas(16) float tessellationFactor;
+		alignas(16) glm::vec2 viewportDim;
+		alignas(16) float tessellatedEdgeSize;
+	};
 }

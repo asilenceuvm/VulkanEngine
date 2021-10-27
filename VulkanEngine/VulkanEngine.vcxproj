@@ -198,6 +198,7 @@ pause</Command>
     <ClCompile Include="assetManager.cpp" />
     <ClCompile Include="buffer.cpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="descriptorManager.cpp" />
     <ClCompile Include="device.cpp" />
     <ClCompile Include="engine.cpp" />
     <ClCompile Include="inputManager.cpp" />
@@ -215,6 +216,7 @@ pause</Command>
     <ClInclude Include="buffer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="constants.h" />
+    <ClInclude Include="descriptorManager.h" />
     <ClInclude Include="device.h" />
     <ClInclude Include="engine.h" />
     <ClInclude Include="gameObject.h" />
@@ -235,6 +237,8 @@ pause</Command>
     <None Include="shaders\cubemapvert.vert" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
+    <None Include="shaders\tesc.tesc" />
+    <None Include="shaders\tese.tese" />
     <None Include="shaders\water.frag" />
     <None Include="shaders\water.vert" />
   </ItemGroup>

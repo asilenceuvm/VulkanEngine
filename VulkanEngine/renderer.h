@@ -24,7 +24,6 @@ public:
 	void endFrame();
 	void beginSwapChainRenderPass(VkCommandBuffer commandBuffer);
 	void endSwapChainRenderPass(VkCommandBuffer commandBuffer);
-	void loadDescriptorSets();
 
 	//getters
 	VkRenderPass getSwapChainRenderPass() const { return swapchain->getRenderPass(); }
@@ -41,18 +40,6 @@ public:
 	size_t getImageCount() const {
 		return swapchain->imageCount();
 	}
-	std::vector<VkDeviceMemory> getUniformBuffersMemory() {
-		return uniformBuffersMemory;
-	}
-	std::vector<VkBuffer> getUniformBuffers() {
-		return uniformBuffers;
-	}
-	std::vector<VkDescriptorSet> getDescriptorSets() {
-		return descriptorSets;
-	}
-	VkDescriptorSetLayout getDescriptorSetLayout() {
-		return descriptorSetLayout;
-	}
 
 private:
 	Window& window;
@@ -64,24 +51,11 @@ private:
 	int currentFrameIndex{ 0 };
 	bool isFrameStarted{ false };
 
-	VkDescriptorPool descriptorPool;
-	std::vector<VkDescriptorSet> descriptorSets;
-	VkDescriptorSetLayout descriptorSetLayout;
 
-	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
-	std::vector<VkDeviceMemory> uniformBuffersMemory;
-
-	VkSampler textureSampler;
 	bool loadDescriptors = false;
 
 	void createCommandBuffers();
 	void freeCommandBuffers();
 	void recreateSwapChain();
-	void createTextureSampler();
-	void createDescriptorPool();
-	void createDescriptorSetLayout();
-	void createUniformBuffers();
-	void createDescriptorSets();
-	void updateDescriptorSets(GameObject& gameObject);
 };
 

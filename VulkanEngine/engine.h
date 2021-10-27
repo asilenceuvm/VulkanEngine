@@ -9,6 +9,7 @@
 #include "renderer.h"
 #include "camera.h"
 #include "renderManager.h"
+#include "descriptorManager.h"
 
 class Engine {
 public:
@@ -33,8 +34,12 @@ private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };
 	Renderer renderer{ window, device };
-	RenderManager renderManager{ device, renderer.getSwapChainRenderPass(), renderer.getDescriptorSetLayout() };
+	DescriptorManager descriptorManager{ device };
+	RenderManager renderManager{ device, renderer.getSwapChainRenderPass(), DescriptorManager::descriptorSetLayout };
     Camera camera{};
+
+	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
+	std::vector<VkDeviceMemory> uniformBuffersMemory;
 
 
 	void loadGameObjects();
@@ -42,6 +47,6 @@ private:
 	void shutdown();
 
 	//temp
-	std::unique_ptr<Model> generateMesh(int length, int width, std::shared_ptr<Texture> texture);
+	std::unique_ptr<Model> generateMesh(int length, int width, std::shared_ptr<Texture> texture, std::string heightmap = "");
 };
 

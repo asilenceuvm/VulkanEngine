@@ -34,6 +34,7 @@
 #include "inputManager.h"
 #include "pythonManager.h"
 #include "assetManager.h"
+#include "constants.h"
 
 
 std::vector<GameObject> Engine::gameObjects;
@@ -41,28 +42,32 @@ glm::vec3 Engine::lightPos; //probably temporary
 
 Engine::Engine() {
 	loadGameObjects();
-	renderer.loadDescriptorSets();
 
 	//tell python where to find c++ interaction methods 
 	PyImport_AppendInittab("engine", &PythonManager::PyInit_engine);
 }
 
 Engine::~Engine() {
+	for (size_t i = 0; i < uniformBuffers.size(); i++) {
+        vkDestroyBuffer(device.device(), uniformBuffers[i], nullptr);
+        vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
+    }
 	gameObjects.clear();
 	AssetManager::clearTextures();
 }
 
-std::unique_ptr<Model> Engine::generateMesh(int length, int width, std::shared_ptr<Texture> texture) {
+std::unique_ptr<Model> Engine::generateMesh(int length, int width, std::shared_ptr<Texture> texture, std::string heightmap) {
 	Model::Geometry geometry;
-	int total = 0;
 
+	int total = 0;
 	//generate length * width squares
 	for (int i = 0; i < length; i++) {
 		for (int j = 0; j < width; j++) {
-			Model::Vertex vert1{ {i - .5f, .0f, j - .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {1.f, 0.f} };
-			Model::Vertex vert2{ {i - .5f, .0f, j + .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {0.f, 0.f} };
-			Model::Vertex vert3{ {i + .5f, .0f, j + .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {0.f, 1.f} };
-			Model::Vertex vert4{ {i + .5f, .0f, j - .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {1.f, 1.f} };
+			float yPos[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+			Model::Vertex vert1{ {i - .5f, yPos[0], j - .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {1.f, 0.f} };
+			Model::Vertex vert2{ {i - .5f, yPos[1], j + .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {0.f, 0.f} };
+			Model::Vertex vert3{ {i + .5f, yPos[2], j + .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {0.f, 1.f} };
+			Model::Vertex vert4{ {i + .5f, yPos[3], j - .5f}, {1.f, 1.f, 1.f}, {.0f, 1.f, 0.0f}, {1.f, 1.f} };
 
 			geometry.vertices.push_back(vert1);
 			geometry.vertices.push_back(vert2);
@@ -80,36 +85,6 @@ std::unique_ptr<Model> Engine::generateMesh(int length, int width, std::shared_p
 		}
 	}
 
-	// Calculate normals from height map using a sobel filter
-	/*HeightMap heightMap(getAssetPath() + "textures/terrain_heightmap_r16.ktx", PATCH_SIZE);
-	for (auto x = 0; x < PATCH_SIZE; x++)
-	{
-		for (auto y = 0; y < PATCH_SIZE; y++)
-		{
-			// Get height samples centered around current position
-			float heights[3][3];
-			for (auto hx = -1; hx <= 1; hx++)
-			{
-				for (auto hy = -1; hy <= 1; hy++)
-				{
-					heights[hx + 1][hy + 1] = heightMap.getHeight(x + hx, y + hy);
-				}
-			}
-
-			// Calculate the normal
-			glm::vec3 normal;
-			// Gx sobel filter
-			normal.x = heights[0][0] - heights[2][0] + 2.0f * heights[0][1] - 2.0f * heights[2][1] + heights[0][2] - heights[2][2];
-			// Gy sobel filter
-			normal.z = heights[0][0] + 2.0f * heights[1][0] + heights[2][0] - heights[0][2] - 2.0f * heights[1][2] - heights[2][2];
-			// Calculate missing up component of the normal using the filtered x and y axis
-			// The first value controls the bump strength
-			normal.y = 0.25f * sqrt(1.0f - normal.x * normal.x - normal.z * normal.z);
-
-			vertices[x + y * PATCH_SIZE].normal = glm::normalize(normal * glm::vec3(2.0f, 1.0f, 2.0f));
-		}
-	}*/
-
 	return std::make_unique<Model>(device, geometry, texture);
 }
 
@@ -117,7 +92,8 @@ void Engine::loadGameObjects() {
 	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
 	AssetManager::loadTexture(device, "textures/camel.jpg", "camel");
 	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
-	std::array<std::string, 6> filepaths;
+	AssetManager::loadTexture(device, "textures/sand.jpg", "sand");
+	//std::array<std::string, 6> filepaths;
 	//right left top bottom front back
 	/*filepaths[0] = "textures/skybox/right.jpg";
 	filepaths[1] = "textures/skybox/left.jpg";
@@ -125,12 +101,14 @@ void Engine::loadGameObjects() {
 	filepaths[3] = "textures/skybox/bottom.jpg";
 	filepaths[4] = "textures/skybox/front.jpg";
 	filepaths[5] = "textures/skybox/back.jpg";*/
-	filepaths[0] = "textures/skybox2/right.png";
-	filepaths[1] = "textures/skybox2/left.png";
-	filepaths[2] = "textures/skybox2/top.png";
-	filepaths[3] = "textures/skybox2/bottom.png";
-	filepaths[4] = "textures/skybox2/front.png";
-	filepaths[5] = "textures/skybox2/back.png";
+	std::array<std::string, 6> filepaths = {
+		"textures/skybox2/right.png",
+		"textures/skybox2/left.png",
+		"textures/skybox2/top.png",
+		"textures/skybox2/bottom.png",
+		"textures/skybox2/front.png",
+		"textures/skybox2/back.png"
+	};
 
 	AssetManager::loadCubeMap(device, filepaths, "skybox");
 
@@ -144,10 +122,13 @@ void Engine::loadGameObjects() {
 	gameObjects.push_back(std::move(gameObj));
 
 	auto gameObj1 = GameObject::createGameObject("water");
-	//gameObj1.model = generateMesh(15, 15, AssetManager::textures["camel"]);
 	gameObj1.model = generateMesh(100, 100, AssetManager::textures["skybox"]);
 	gameObj1.transform.scale = glm::vec3(0.05f, 0.05f, 0.05f);
 	gameObjects.push_back(std::move(gameObj1));
+
+	auto gameObj4 = GameObject::createGameObject("terrain");
+	gameObj4.model = generateMesh(25, 25, AssetManager::textures["sand"], "textures/heightmap.png");
+	gameObjects.push_back(std::move(gameObj4));
 
 	std::shared_ptr<Model> model2 =
 		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
@@ -164,12 +145,55 @@ void Engine::loadGameObjects() {
 
 	auto gameObj3 = GameObject::createGameObject("skybox");
 	gameObj3.model = model3;
-	//gameObj3.transform.translation = { .0f, .0f, 0.f };
-	//gameObj3.transform.scale = glm::vec3(0.f);
 	gameObjects.push_back(std::move(gameObj3));
 
 
 	lightPos = glm::vec3(0, 1, 3);
+
+	uniformBuffers.resize(Engine::gameObjects.size());
+    uniformBuffersMemory.resize(Engine::gameObjects.size());
+	size_t bufferSize;
+    for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
+		if (Engine::gameObjects[i].getTag() == "skybox") {
+			bufferSize = sizeof(Constants::CubeMapUBO);
+		}
+		else if (Engine::gameObjects[i].getTag() == "terrain") {
+			bufferSize = sizeof(Constants::TesselationUBO);
+		}
+		else {
+			bufferSize = sizeof(Constants::ObjectUBO);
+		}
+
+		device.createBuffer(bufferSize,
+			VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+			VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+			uniformBuffers[i], 
+			uniformBuffersMemory[i]);
+
+    }
+
+	descriptorManager.createDescriptorPool(static_cast<uint32_t>(gameObjects.size()));
+	descriptorManager.createDescriptorSets(static_cast<uint32_t>(gameObjects.size()));
+
+
+	for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
+		if (Engine::gameObjects[i].getTag() == "skybox") {
+			bufferSize = sizeof(Constants::CubeMapUBO);
+		}
+		else if (Engine::gameObjects[i].getTag() == "terrain") {
+			bufferSize = sizeof(Constants::TesselationUBO);
+		}
+		else {
+			bufferSize = sizeof(Constants::ObjectUBO);
+		}
+
+		descriptorManager.updateDescriptorSet(
+			gameObjects[i],
+			bufferSize,
+			DescriptorManager::descriptorSets[i],
+			uniformBuffers[i],
+			gameObjects[i].model->getTexture()->getImageView());
+	}
 }
 
 
@@ -177,7 +201,7 @@ void Engine::render() {
 	glfwPollEvents();
 	if (auto commandBuffer = renderer.beginFrame()) {
 		renderer.beginSwapChainRenderPass(commandBuffer);
-		renderManager.renderGameObjects(commandBuffer, gameObjects, camera, renderer.getUniformBuffersMemory(), renderer.getDescriptorSets());
+		renderManager.renderGameObjects(commandBuffer, gameObjects, camera, uniformBuffersMemory, DescriptorManager::descriptorSets);
 		renderer.endSwapChainRenderPass(commandBuffer);
 		renderer.endFrame();
 	}
