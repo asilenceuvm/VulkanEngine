@@ -61,7 +61,7 @@ public:
 
 	void computeAngularAcceleration() {
 		glm::vec3 angularAcceleration{ torque.x / shape.momentOfInertia, torque.y / shape.momentOfInertia, torque.z / shape.momentOfInertia };
-		angularVelocity += angularAcceleration;
+		angularVelocity += angularAcceleration * 30.f;
 	}
 
 private:

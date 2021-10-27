@@ -82,7 +82,7 @@ void Engine::loadGameObjects() {
 		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
 	// Make a triangle of objects
 	for (int i = 0; i < 4; i++) {
-		for (int j = i; j < 4; j++) {
+		for (int j = i; j < 3; j++) {
 			auto gameObj1 = GameObject::createGameObject("apple" + std::to_string(i) + std::to_string(j));
 			gameObj1.model = model;
 			gameObj1.transform.translation = { 0.f + i*0.1f, 0.f + j*0.1f - i*0.1f, 0.f };
@@ -92,21 +92,29 @@ void Engine::loadGameObjects() {
 			gameObjects.push_back(std::move(gameObj1));
 		}
 	}
-	/*auto gameObj1 = GameObject::createGameObject("apple" + std::to_string(0));
-	gameObj1.model = model;
-	gameObj1.transform.translation = { -0.7f, -0.08f, 0.f };
-	gameObj1.transform.scale = glm::vec3(1.f);
-	gameObj1.particle.linearVelocity = glm::vec3(0.005f, 0.f, 0.f);
-	gameObj1.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObjects.push_back(std::move(gameObj1));*/
+	auto gameObj4 = GameObject::createGameObject("apple" + std::to_string(0));
+	gameObj4.model = model;
+	gameObj4.transform.translation = { 0.f, 0.f, 0.f };
+	gameObj4.transform.scale = glm::vec3(1.f);
+	gameObj4.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObj4.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjects.push_back(std::move(gameObj4));
 
 	auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(0));
 	gameObj2.model = model;
-	gameObj2.transform.translation = { -0.75f, -0.75f, 0.f };
+	gameObj2.transform.translation = { -1.f, -0.05f, 0.f };
 	gameObj2.transform.scale = glm::vec3(1.f);
-	gameObj2.particle.linearVelocity = glm::vec3(0.0075f, 0.0075f, 0.f);
-	gameObj2.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObj2.particle.linearVelocity = glm::vec3(0.0075f, 0.f, 0.f);
+	gameObj2.particle.angularVelocity = glm::vec3(0.f, 3.f, 0.f);
 	gameObjects.push_back(std::move(gameObj2));
+
+	auto gameObj3 = GameObject::createGameObject("apple" + std::to_string(0));
+	gameObj3.model = model;
+	gameObj3.transform.translation = { 0.5f, -0.175f, 0.f };
+	gameObj3.transform.scale = glm::vec3(1.f);
+	gameObj3.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObj3.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjects.push_back(std::move(gameObj3));
 
 	lightPos = glm::vec3(0, 1, 3);
 }
@@ -141,6 +149,20 @@ void Engine::update() {
 	camera.rotateCamera(InputManager::xoffset, InputManager::yoffset, 0.1f);
 	InputManager::xoffset = 0;
 	InputManager::yoffset = 0;
+
+	// Apple velocity/acceleration changing
+	if (InputManager::keys[GLFW_KEY_T]) {
+		camera.moveCamForward(.05f);
+	}
+	if (InputManager::keys[GLFW_KEY_G]) {
+		camera.moveCamBack(.05f);
+	}
+	if (InputManager::keys[GLFW_KEY_F]) {
+		camera.moveCamLeft(.05f);
+	}
+	if (InputManager::keys[GLFW_KEY_H]) {
+		camera.moveCamRight(.05f);
+	}
 
 	if (InputManager::keys[GLFW_KEY_ESCAPE]) {
 		shutdown(); 
@@ -274,8 +296,8 @@ void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 		//std::cout << "Computed Forces (Post-normalization)" << std::endl;
 		//std::cout << computedForceObj1.x << "," << computedForceObj1.y << "," << computedForceObj1.z << std::endl;
 		//std::cout << computedForceObj2.x << "," << computedForceObj2.y << "," << computedForceObj2.z << std::endl;
-		obj1->particle.computeForceAndTorque(computedForceObj1, glm::vec3{ -0.5f,-0.5f,0.f });
-		obj2->particle.computeForceAndTorque(computedForceObj2, glm::vec3{ 0.5f,0.5f,0.f });
+		obj1->particle.computeForceAndTorque(computedForceObj1, glm::vec3{ -0.05f,-0.05f,0.f });
+		obj2->particle.computeForceAndTorque(computedForceObj2, glm::vec3{ 0.05f,0.05f,0.f });
 		// Compute new accelerations after collision
 		obj1->particle.computeLinearAcceleration();
 		obj1->particle.computeAngularAcceleration();
