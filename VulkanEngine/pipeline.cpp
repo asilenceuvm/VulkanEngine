@@ -14,7 +14,7 @@ Pipeline::Pipeline(Device& device,
 		const PipelineConfigInfo& configInfo,
 		const std::string& teseFilepath, 
 		const std::string& tescFilepath) : device(device){
-	createGraphicsPipeline(vertFilepath, fragFilepath, configInfo);
+	createGraphicsPipeline(vertFilepath, fragFilepath, configInfo, teseFilepath, tescFilepath);
 }
 
 Pipeline::~Pipeline() {
@@ -64,7 +64,9 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
 	fragShaderStage.pSpecializationInfo = nullptr;
 	shaderStages.push_back(fragShaderStage);
 
-	if (teseFilepath != "") {
+	spdlog::debug("{}", teseFilepath);
+	if (!teseFilepath.empty()) {
+		spdlog::debug("tess");
 		auto tescCode = readFile(tescFilepath);
 		auto teseCode = readFile(teseFilepath);
 		createShaderModule(tescCode, &tescShaderModule);
@@ -73,7 +75,7 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
 		VkPipelineShaderStageCreateInfo tescShaderStage{};
 		tescShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		tescShaderStage.stage = VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
-		tescShaderStage.module = fragShaderModule;
+		tescShaderStage.module = tescShaderModule;
 		tescShaderStage.pName = "main";
 		tescShaderStage.flags = 0;
 		tescShaderStage.pNext = nullptr;
@@ -83,7 +85,7 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
 		VkPipelineShaderStageCreateInfo teseShaderStage{};
 		teseShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
 		teseShaderStage.stage = VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
-		teseShaderStage.module = vertShaderModule;
+		teseShaderStage.module = teseShaderModule;
 		teseShaderStage.pName = "main";
 		teseShaderStage.flags = 0;
 		teseShaderStage.pNext = nullptr;
@@ -114,11 +116,18 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
 	pipelineInfo.pDepthStencilState = &configInfo.depthStencilInfo;
 	pipelineInfo.pDynamicState = &configInfo.dynamicStateInfo;
 	if (teseFilepath != "") {
+		VkPipelineInputAssemblyStateCreateInfo pipelineInputAssemblyStateCreateInfo {};
+		pipelineInputAssemblyStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+		pipelineInputAssemblyStateCreateInfo.topology = VK_PRIMITIVE_TOPOLOGY_PATCH_LIST;
+		pipelineInputAssemblyStateCreateInfo.flags = 0;
+		pipelineInputAssemblyStateCreateInfo.primitiveRestartEnable = VK_FALSE;
+		pipelineInfo.pInputAssemblyState = &pipelineInputAssemblyStateCreateInfo;
+
 		VkPipelineTessellationStateCreateInfo pipelineTessellationStateCreateInfo {};
 		pipelineTessellationStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_TESSELLATION_STATE_CREATE_INFO;
 		pipelineTessellationStateCreateInfo.patchControlPoints = 4;
-		;
 		pipelineInfo.pTessellationState = &pipelineTessellationStateCreateInfo;
+
 	}
 
 	pipelineInfo.layout = configInfo.pipelineLayout;

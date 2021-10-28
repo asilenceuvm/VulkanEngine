@@ -16,26 +16,39 @@
 #include "texture.h"
 #include "constants.h"
 #include "engine.h"
+#include "descriptorManager.h"
 
 
-RenderManager::RenderManager(Device& device, VkRenderPass renderPass, VkDescriptorSetLayout descriptorSetLayout) : device{ device } {
-	createPipelineLayout(descriptorSetLayout);
+RenderManager::RenderManager(Device& device, VkRenderPass renderPass) : device{ device } {
+	createPipelineLayout();
 	createPipeline(renderPass);
 }
 
 RenderManager::~RenderManager() {
-	vkDestroyPipelineLayout(device.device(), pipelineLayout, nullptr);
+	vkDestroyPipelineLayout(device.device(), pipelineLayouts.object, nullptr);
+	vkDestroyPipelineLayout(device.device(), pipelineLayouts.terrain, nullptr);
 }
 
 
-void RenderManager::createPipelineLayout(VkDescriptorSetLayout descriptorSetLayout) {
+void RenderManager::createPipelineLayout() {
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
 	pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
 	pipelineLayoutInfo.setLayoutCount = 1;
-	pipelineLayoutInfo.pSetLayouts = &descriptorSetLayout;
+	pipelineLayoutInfo.pSetLayouts = &DescriptorManager::descriptorSetLayouts.object;
 	pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-	if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS) {
+	if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo, nullptr, &pipelineLayouts.object) != VK_SUCCESS) {
+		spdlog::critical("Failed to create pipeline layout");
+		throw std::runtime_error("createPipelineLayout");
+	}
+
+	VkPipelineLayoutCreateInfo pipelineLayoutInfo2{};
+	pipelineLayoutInfo2.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	pipelineLayoutInfo2.setLayoutCount = 1;
+	pipelineLayoutInfo2.pSetLayouts = &DescriptorManager::descriptorSetLayouts.terrain;
+	pipelineLayoutInfo2.pushConstantRangeCount = 0;
+
+	if (vkCreatePipelineLayout(device.device(), &pipelineLayoutInfo2, nullptr, &pipelineLayouts.terrain) != VK_SUCCESS) {
 		spdlog::critical("Failed to create pipeline layout");
 		throw std::runtime_error("createPipelineLayout");
 	}
@@ -45,7 +58,7 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	PipelineConfigInfo pipelineConfigCube{};
 	Pipeline::defaultPipelineConfigInfo(pipelineConfigCube);
 	pipelineConfigCube.renderPass = renderPass;
-	pipelineConfigCube.pipelineLayout = pipelineLayout;
+	pipelineConfigCube.pipelineLayout = pipelineLayouts.object;
 	pipelineConfigCube.rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
 	pipelineConfigCube.depthStencilInfo.depthWriteEnable = VK_FALSE;
 	pipelineConfigCube.depthStencilInfo.depthTestEnable = VK_FALSE;
@@ -55,7 +68,7 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	PipelineConfigInfo pipelineConfig{};
 	Pipeline::defaultPipelineConfigInfo(pipelineConfig);
 	pipelineConfig.renderPass = renderPass;
-	pipelineConfig.pipelineLayout = pipelineLayout;
+	pipelineConfig.pipelineLayout = pipelineLayouts.object;
 	pipelineConfig.rasterizationInfo.cullMode = VK_CULL_MODE_BACK_BIT;
 	pipelineConfig.depthStencilInfo.depthWriteEnable = VK_TRUE;
 	pipelineConfig.depthStencilInfo.depthTestEnable = VK_TRUE;
@@ -65,19 +78,22 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	PipelineConfigInfo pipelineConfigWater{};
 	Pipeline::defaultPipelineConfigInfo(pipelineConfigWater);
 	pipelineConfigWater.renderPass = renderPass;
-	pipelineConfigWater.pipelineLayout = pipelineLayout;
+	pipelineConfigWater.pipelineLayout = pipelineLayouts.object;
 	pipelines[2] = std::make_unique<Pipeline>(device, "shaders/watervert.spv", "shaders/waterfrag.spv", pipelineConfigWater);
 
-
+	//terrain 
 	PipelineConfigInfo pipelineConfigTerrain{};
 	Pipeline::defaultPipelineConfigInfo(pipelineConfigTerrain);
 	pipelineConfigTerrain.renderPass = renderPass;
-	pipelineConfigTerrain.pipelineLayout = pipelineLayout;
+	pipelineConfigTerrain.pipelineLayout = pipelineLayouts.terrain;
 	pipelines[3] = std::make_unique<Pipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfigTerrain, "shaders/tese.spv", "shaders/tesc.spv");
+	spdlog::debug("{}", pipelines.size());
 }
 
 
-void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector<GameObject>& gameObjects, const Camera& camera, std::vector<VkDeviceMemory> uniformBuffersMemory, std::vector<VkDescriptorSet> descriptorSets) {
+void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, 
+		std::vector<GameObject>& gameObjects, 
+		const Camera& camera, std::vector<VkDeviceMemory> uniformBuffersMemory) {
 	//TODO: rework multi pipeline system 
 
 	//cubemap
@@ -93,7 +109,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 		memcpy(data, &ubo, sizeof(ubo));
 	vkUnmapMemory(device.device(), uniformBuffersMemory[index]);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[index], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.object, 0, 1, &DescriptorManager::descriptorSets.objects[index], 0, nullptr);
 
 	gameObjects.back().model->bind(commandBuffer);
 	gameObjects.back().model->draw(commandBuffer);
@@ -118,7 +134,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 			memcpy(data, &ubo, sizeof(ubo));
 			vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[i].getId()]);
 
-			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[i].getId()], 0, nullptr);
+			vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.object, 0, 1, &DescriptorManager::descriptorSets.objects[gameObjects[i].getId()], 0, nullptr);
 
 			gameObjects[i].model->bind(commandBuffer);
 			gameObjects[i].model->draw(commandBuffer);
@@ -142,7 +158,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	memcpy(dataWater, &waterubo, sizeof(waterubo));
 	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[index].getId()], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.object, 0, 1, &DescriptorManager::descriptorSets.objects[gameObjects[index].getId()], 0, nullptr);
 
 	gameObjects[index].model->bind(commandBuffer);
 	gameObjects[index].model->draw(commandBuffer);
@@ -163,7 +179,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer, std::vector
 	memcpy(dataTess, &waterubo, sizeof(waterubo));
 	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
 
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets[gameObjects[index].getId()], 0, nullptr);
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.terrain, 0, 1, &DescriptorManager::descriptorSets.terrain, 0, nullptr);
 
 	gameObjects[index].model->bind(commandBuffer);
 	gameObjects[index].model->draw(commandBuffer);

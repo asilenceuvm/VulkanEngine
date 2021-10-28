@@ -91,6 +91,7 @@ std::unique_ptr<Model> Engine::generateMesh(int length, int width, std::shared_p
 void Engine::loadGameObjects() {
 	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
 	AssetManager::loadTexture(device, "textures/camel.jpg", "camel");
+	AssetManager::loadTexture(device, "textures/heightmap.png", "heightmap");
 	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
 	AssetManager::loadTexture(device, "textures/sand.jpg", "sand");
 	//std::array<std::string, 6> filepaths;
@@ -172,27 +173,40 @@ void Engine::loadGameObjects() {
 
     }
 
-	descriptorManager.createDescriptorPool(static_cast<uint32_t>(gameObjects.size()));
-	descriptorManager.createDescriptorSets(static_cast<uint32_t>(gameObjects.size()));
+	descriptorManager.createDescriptorPool(static_cast<uint32_t>(gameObjects.size() * 2));
+	descriptorManager.createDescriptorSets(static_cast<uint32_t>(gameObjects.size() * 2));
 
 
 	for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
 		if (Engine::gameObjects[i].getTag() == "skybox") {
 			bufferSize = sizeof(Constants::CubeMapUBO);
+			descriptorManager.updateObjectDescriptorSet(
+				gameObjects[i],
+				bufferSize,
+				DescriptorManager::descriptorSets.objects[i],
+				uniformBuffers[i],
+				gameObjects[i].model->getTexture()->getImageView());
 		}
 		else if (Engine::gameObjects[i].getTag() == "terrain") {
 			bufferSize = sizeof(Constants::TesselationUBO);
+			descriptorManager.updateTerrainDescriptorSet(
+				gameObjects[i],
+				bufferSize,
+				DescriptorManager::descriptorSets.terrain,
+				uniformBuffers[i],
+				AssetManager::textures["heightmap"]->getImageView(),
+				gameObjects[i].model->getTexture()->getImageView());
 		}
 		else {
 			bufferSize = sizeof(Constants::ObjectUBO);
+			descriptorManager.updateObjectDescriptorSet(
+				gameObjects[i],
+				bufferSize,
+				DescriptorManager::descriptorSets.objects[i],
+				uniformBuffers[i],
+				gameObjects[i].model->getTexture()->getImageView());
 		}
 
-		descriptorManager.updateDescriptorSet(
-			gameObjects[i],
-			bufferSize,
-			DescriptorManager::descriptorSets[i],
-			uniformBuffers[i],
-			gameObjects[i].model->getTexture()->getImageView());
 	}
 }
 
@@ -201,7 +215,7 @@ void Engine::render() {
 	glfwPollEvents();
 	if (auto commandBuffer = renderer.beginFrame()) {
 		renderer.beginSwapChainRenderPass(commandBuffer);
-		renderManager.renderGameObjects(commandBuffer, gameObjects, camera, uniformBuffersMemory, DescriptorManager::descriptorSets);
+		renderManager.renderGameObjects(commandBuffer, gameObjects, camera, uniformBuffersMemory);
 		renderer.endSwapChainRenderPass(commandBuffer);
 		renderer.endFrame();
 	}

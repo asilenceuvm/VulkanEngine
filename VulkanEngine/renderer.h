@@ -51,9 +51,6 @@ private:
 	int currentFrameIndex{ 0 };
 	bool isFrameStarted{ false };
 
-
-	bool loadDescriptors = false;
-
 	void createCommandBuffers();
 	void freeCommandBuffers();
 	void recreateSwapChain();

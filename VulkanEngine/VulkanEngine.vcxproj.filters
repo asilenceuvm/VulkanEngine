@@ -76,7 +76,7 @@
       <Filter>Source Files\gfx</Filter>
     </ClCompile>
     <ClCompile Include="descriptorManager.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\gfx\vulkan</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -135,7 +135,7 @@
       <Filter>Header Files\input</Filter>
     </ClInclude>
     <ClInclude Include="descriptorManager.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\gfx\vulkan</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

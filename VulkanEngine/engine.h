@@ -35,7 +35,7 @@ private:
 	Device device{ window };
 	Renderer renderer{ window, device };
 	DescriptorManager descriptorManager{ device };
-	RenderManager renderManager{ device, renderer.getSwapChainRenderPass(), DescriptorManager::descriptorSetLayout };
+	RenderManager renderManager{ device, renderer.getSwapChainRenderPass() };
     Camera camera{};
 
 	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class

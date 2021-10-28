@@ -137,10 +137,6 @@ void Renderer::recreateSwapChain() {
 			spdlog::critical("Swap chain image or depth changed");
 		}
 	}
-	if (loadDescriptors) {
-		//createDescriptorPool();
-		//createDescriptorSets();
-	}
 
 }
 

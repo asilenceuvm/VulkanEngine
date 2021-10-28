@@ -26,8 +26,8 @@ public:
 		const std::string& vertFilepath, 
 		const std::string& fragFilepath, 
 		const PipelineConfigInfo& configInfo, 
-		const std::string& teseFilepath = "", 
-		const std::string& tescFilepath = "");
+		const std::string& teseFilepath = std::string(), 
+		const std::string& tescFilepath = std::string());
 	~Pipeline();
 
 	//delete copy constructors
