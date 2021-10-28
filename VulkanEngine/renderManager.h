@@ -10,6 +10,7 @@
 #include "gameObject.h"
 #include "camera.h"
 #include "texture.h"
+#include "constants.h"
 
 
 class RenderManager {
@@ -30,6 +31,8 @@ private:
 		VkPipelineLayout object;
 		VkPipelineLayout terrain;
 	} pipelineLayouts;
+
+	Constants::Frustum frustum;
 
 	void createPipelineLayout();
 	void createPipeline(VkRenderPass renderPass);

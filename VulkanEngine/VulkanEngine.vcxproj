@@ -237,6 +237,8 @@ pause</Command>
     <None Include="shaders\cubemapvert.vert" />
     <None Include="shaders\shader.frag" />
     <None Include="shaders\shader.vert" />
+    <None Include="shaders\terrainfrag.frag" />
+    <None Include="shaders\terrainvert.vert" />
     <None Include="shaders\tesc.tesc" />
     <None Include="shaders\tese.tese" />
     <None Include="shaders\water.frag" />

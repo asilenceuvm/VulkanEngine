@@ -86,7 +86,7 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	Pipeline::defaultPipelineConfigInfo(pipelineConfigTerrain);
 	pipelineConfigTerrain.renderPass = renderPass;
 	pipelineConfigTerrain.pipelineLayout = pipelineLayouts.terrain;
-	pipelines[3] = std::make_unique<Pipeline>(device, "shaders/vert.spv", "shaders/frag.spv", pipelineConfigTerrain, "shaders/tese.spv", "shaders/tesc.spv");
+	pipelines[3] = std::make_unique<Pipeline>(device, "shaders/terrainvert.spv", "shaders/terrainfrag.spv", pipelineConfigTerrain, "shaders/tese.spv", "shaders/tesc.spv");
 	spdlog::debug("{}", pipelines.size());
 }
 
@@ -174,9 +174,12 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer,
 	tesselationUBO.lightPos = glm::vec4(Engine::lightPos, 1); 
 	tesselationUBO.viewportDim = glm::vec2((float)800, (float)600);
 
+	frustum.update(tesselationUBO.projection * tesselationUBO.modelview);
+	memcpy(tesselationUBO.frustumPlanes, frustum.planes.data(), sizeof(glm::vec4) * 6);
+
 	void* dataTess;
 	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(tesselationUBO), 0, &dataTess);
-	memcpy(dataTess, &waterubo, sizeof(waterubo));
+	memcpy(dataTess, &tesselationUBO, sizeof(tesselationUBO));
 	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
 
 	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.terrain, 0, 1, &DescriptorManager::descriptorSets.terrain, 0, nullptr);

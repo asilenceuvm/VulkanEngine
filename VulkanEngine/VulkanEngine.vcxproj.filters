@@ -163,5 +163,11 @@
     <None Include="shaders\tese.tese">
       <Filter>Resource Files\shaders</Filter>
     </None>
+    <None Include="shaders\terrainfrag.frag">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\terrainvert.vert">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>
