@@ -20,6 +20,8 @@ Pipeline::Pipeline(Device& device,
 Pipeline::~Pipeline() {
 	vkDestroyShaderModule(device.device(), vertShaderModule, nullptr);
 	vkDestroyShaderModule(device.device(), fragShaderModule, nullptr);
+	vkDestroyShaderModule(device.device(), teseShaderModule, nullptr);
+	vkDestroyShaderModule(device.device(), tescShaderModule, nullptr);
 	vkDestroyPipeline(device.device(), graphicsPipeline, nullptr);
 }
 
@@ -183,9 +185,9 @@ void Pipeline::defaultPipelineConfigInfo(PipelineConfigInfo& configInfo) {
 	configInfo.colorBlendAttachment.colorWriteMask =
 	  VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
 	  VK_COLOR_COMPONENT_A_BIT;
-	configInfo.colorBlendAttachment.blendEnable = VK_FALSE;
-	configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;   
-	configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;  
+	configInfo.colorBlendAttachment.blendEnable = VK_TRUE;
+	configInfo.colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;   
+	configInfo.colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;  
 	configInfo.colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;              
 	configInfo.colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;   
 	configInfo.colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  

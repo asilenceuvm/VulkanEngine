@@ -34,6 +34,18 @@ public:
 		void loadModel(const std::string& filepath);
 	};
 
+	struct HeightMap {
+	private:
+		uint16_t *heightdata;
+		uint32_t dim;
+		uint32_t scale;
+	public:
+		HeightMap(Device& device, std::string filename, uint32_t patchsize);
+		~HeightMap() {	delete[] heightdata; }
+
+		float getHeight(uint32_t x, uint32_t y);
+	};
+
 
 	Model(Device &device, const Model::Geometry& geometry, std::shared_ptr<Texture> texture);
 	~Model();
@@ -46,6 +58,8 @@ public:
 	void draw(VkCommandBuffer commandBuffer);
 
 	static std::unique_ptr<Model> createModelFromFile(Device& device, const std::string& filepath, std::shared_ptr<Texture> texture);
+	static std::unique_ptr<Model> generateTerrain(Device& device);
+	static std::unique_ptr<Model> generateMesh(Device& device, int length, int width, std::shared_ptr<Texture> texture, std::string heightmap = "");
 
 	std::shared_ptr<Texture> getTexture() { return texture; }
 private:

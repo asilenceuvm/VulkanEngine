@@ -95,7 +95,6 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer,
 		std::vector<GameObject>& gameObjects, 
 		const Camera& camera, std::vector<VkDeviceMemory> uniformBuffersMemory) {
 	//TODO: rework multi pipeline system 
-
 	//cubemap
 	pipelines[0]->bind(commandBuffer);
 	auto it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "skybox"; });
@@ -141,28 +140,6 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer,
 		}
 	}
 
-	//water 
-	pipelines[2]->bind(commandBuffer);
-	it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "water"; });
-	index = std::distance(Engine::gameObjects.begin(), it);
-	Constants::ObjectUBO waterubo{};
-	waterubo.lightPos = Engine::lightPos;
-	waterubo.viewPos = camera.getCameraPos();
-	waterubo.model = gameObjects[index].transform.mat4();
-	waterubo.view = camera.getView();
-	waterubo.proj = camera.getProjection();
-	waterubo.time = glfwGetTime();
-
-	void* dataWater;
-	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(waterubo), 0, &dataWater);
-	memcpy(dataWater, &waterubo, sizeof(waterubo));
-	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
-
-	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.object, 0, 1, &DescriptorManager::descriptorSets.objects[gameObjects[index].getId()], 0, nullptr);
-
-	gameObjects[index].model->bind(commandBuffer);
-	gameObjects[index].model->draw(commandBuffer);
-
 	//terrain 
 	pipelines[3]->bind(commandBuffer);
 	it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "terrain"; });
@@ -186,5 +163,29 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer,
 
 	gameObjects[index].model->bind(commandBuffer);
 	gameObjects[index].model->draw(commandBuffer);
+
+	//water 
+	pipelines[2]->bind(commandBuffer);
+	it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "water"; });
+	index = std::distance(Engine::gameObjects.begin(), it);
+	Constants::ObjectUBO waterubo{};
+	waterubo.lightPos = Engine::lightPos;
+	waterubo.viewPos = camera.getCameraPos();
+	waterubo.model = gameObjects[index].transform.mat4();
+	waterubo.view = camera.getView();
+	waterubo.proj = camera.getProjection();
+	waterubo.time = glfwGetTime();
+
+	void* dataWater;
+	vkMapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()], 0, sizeof(waterubo), 0, &dataWater);
+	memcpy(dataWater, &waterubo, sizeof(waterubo));
+	vkUnmapMemory(device.device(), uniformBuffersMemory[gameObjects[index].getId()]);
+
+	vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayouts.object, 0, 1, &DescriptorManager::descriptorSets.objects[gameObjects[index].getId()], 0, nullptr);
+
+	gameObjects[index].model->bind(commandBuffer);
+	gameObjects[index].model->draw(commandBuffer);
+
+
 }
 

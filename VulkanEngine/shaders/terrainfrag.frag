@@ -1,44 +1,40 @@
 #version 450
 
-layout(location = 0) in vec3 fragPos;
-layout(location = 1) in vec2 fragTexCoord;
-layout(location = 2) in vec3 normal;
-layout(location = 3) in vec3 lightPos;
-layout(location = 4) in vec3 viewPos;
+layout (location = 0) in vec3 inNormal;
+layout (location = 1) in vec2 inUV;
+layout (location = 2) in vec3 inViewVec;
+layout (location = 3) in vec3 inLightVec;
+layout (location = 4) in vec3 inEyePos;
+layout (location = 5) in vec3 inWorldPos;
 
-layout (location = 0) out vec4 outColor;
+layout (location = 0) out vec4 outFragColor;
 
-layout(binding = 1) uniform sampler2D texSampler;
+layout(binding = 2) uniform sampler2D texSampler;
 
-float fog(float density) {
+vec3 sampleTerrainLayer() {
+	vec3 fragTexCoord = vec3(inUV, 1);
+	vec3 color = texture(texSampler, inUV).rgb;
+	return color;
+}
+
+float fog(float density)
+{
 	const float LOG2 = -1.442695;
 	float dist = gl_FragCoord.z / gl_FragCoord.w * 0.1;
 	float d = density * dist;
 	return 1.0 - clamp(exp2(d * d * LOG2), 0.0, 1.0);
 }
 
-void main() {
-    vec3 lightColor = vec3(1, 1, 1); //TODO: replace with passed in variable from c code
+void main()
+{
+	vec3 N = normalize(inNormal);
+	vec3 L = normalize(inLightVec);
+	vec3 ambient = vec3(0.5);
+	vec3 diffuse = max(dot(N, L), 0.0) * vec3(1.0);
 
-    // ambient
-    float ambientStrength = 0.1;
-    vec3 ambient = ambientStrength * lightColor * texture(texSampler, fragTexCoord).rgb;
-  	
-    // diffuse 
-    vec3 norm = normalize(normal);
-    vec3 lightDir = normalize(lightPos - fragPos);
-    float diff = max(dot(norm, lightDir), 0.0);
-    vec3 diffuse = diff * lightColor * texture(texSampler, fragTexCoord).rgb;
+	vec4 color = vec4((ambient + diffuse) * sampleTerrainLayer(), 1.0);
 
-	// specular
-    float specularStrength = 0.5;
-    vec3 viewDir = normalize(viewPos - fragPos);
-    vec3 reflectDir = reflect(-lightDir, norm);  
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
-    vec3 specular = specularStrength * spec * lightColor;  
-
-    vec3 result = (ambient + diffuse + specular);
-    //vec3 result = (ambient + diffuse);
-    outColor = vec4(result, 1.0);
-	//outColor = texture(texSampler, fragTexCoord);
+	const vec4 fogColor = vec4(0.47, 0.5, 0.67, 0.0);
+	//outFragColor  = mix(color, fogColor, fog(0.25));	
+	outFragColor = color;
 }
