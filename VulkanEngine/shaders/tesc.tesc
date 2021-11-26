@@ -1,6 +1,6 @@
 #version 450
 
-layout(set = 0, binding = 0) uniform UBO
+layout(binding = 0) uniform UBO
 {
 	mat4 projection;
 	mat4 modelview;
@@ -12,7 +12,7 @@ layout(set = 0, binding = 0) uniform UBO
 	float tessellatedEdgeSize;
 } ubo;
 
-layout(set = 0, binding = 1) uniform sampler2D samplerHeight;
+layout(binding = 1) uniform sampler2D samplerHeight;
 
 layout (vertices = 4) out;
  
@@ -86,29 +86,16 @@ void main()
 		}
 		else
 		{
-			if (ubo.tessellationFactor > 0.0)
-			{
-				gl_TessLevelOuter[0] = screenSpaceTessFactor(gl_in[3].gl_Position, gl_in[0].gl_Position);
-				gl_TessLevelOuter[1] = screenSpaceTessFactor(gl_in[0].gl_Position, gl_in[1].gl_Position);
-				gl_TessLevelOuter[2] = screenSpaceTessFactor(gl_in[1].gl_Position, gl_in[2].gl_Position);
-				gl_TessLevelOuter[3] = screenSpaceTessFactor(gl_in[2].gl_Position, gl_in[3].gl_Position);
-				gl_TessLevelInner[0] = mix(gl_TessLevelOuter[0], gl_TessLevelOuter[3], 0.5);
-				gl_TessLevelInner[1] = mix(gl_TessLevelOuter[2], gl_TessLevelOuter[1], 0.5);
-			}
-			else
-			{
-				// Tessellation factor can be set to zero by example
-				// to demonstrate a simple passthrough
-				gl_TessLevelInner[0] = 1.0;
-				gl_TessLevelInner[1] = 1.0;
-				gl_TessLevelOuter[0] = 1.0;
-				gl_TessLevelOuter[1] = 1.0;
-				gl_TessLevelOuter[2] = 1.0;
-				gl_TessLevelOuter[3] = 1.0;
-			}
+			gl_TessLevelOuter[0] = screenSpaceTessFactor(gl_in[3].gl_Position, gl_in[0].gl_Position);
+			gl_TessLevelOuter[1] = screenSpaceTessFactor(gl_in[0].gl_Position, gl_in[1].gl_Position);
+			gl_TessLevelOuter[2] = screenSpaceTessFactor(gl_in[1].gl_Position, gl_in[2].gl_Position);
+			gl_TessLevelOuter[3] = screenSpaceTessFactor(gl_in[2].gl_Position, gl_in[3].gl_Position);
+			gl_TessLevelInner[0] = mix(gl_TessLevelOuter[0], gl_TessLevelOuter[3], 0.5);
+			gl_TessLevelInner[1] = mix(gl_TessLevelOuter[2], gl_TessLevelOuter[1], 0.5);
 		}
 
 	}
+	barrier();
 
 	gl_out[gl_InvocationID].gl_Position =  gl_in[gl_InvocationID].gl_Position;
 	outNormal[gl_InvocationID] = inNormal[gl_InvocationID];

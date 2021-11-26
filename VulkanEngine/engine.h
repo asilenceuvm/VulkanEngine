@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <vector>
+#include <mutex>
 
 #include "window.h"
 #include "device.h"
@@ -10,6 +11,7 @@
 #include "camera.h"
 #include "renderManager.h"
 #include "descriptorManager.h"
+//#include "model.h"
 
 class Engine {
 public:
@@ -18,6 +20,8 @@ public:
 
 	static std::vector<GameObject> gameObjects;
 	static glm::vec3 lightPos;
+	static bool reloadBuffers;
+	static std::mutex mtx;
 
 	Engine();
 	~Engine();
@@ -30,6 +34,11 @@ public:
 
 	void update();
 	void render();
+
+	static void addGameObject(std::shared_ptr<Model> model, std::string name);
+	static std::string modelToAdd;
+	static std::string modelFilepath;
+	static std::string modelTexture;
 private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };
@@ -40,9 +49,10 @@ private:
 
 	std::vector<VkBuffer> uniformBuffers; //TOOD: rework to use buffer class
 	std::vector<VkDeviceMemory> uniformBuffersMemory;
-
+	
 
 	void loadGameObjects();
+	void updateBuffers();
 
 	void shutdown();
 };

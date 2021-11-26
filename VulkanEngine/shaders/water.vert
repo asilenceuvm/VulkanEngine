@@ -59,6 +59,7 @@ void main() {
 	vec4 waveA = vec4(1,  1,  0.3, 4);
 	vec4 waveB = vec4(0,  1,  0.1, 4);
 	vec4 waveC = vec4(1,  0,  0.2, 5);
+	vec4 waveD = vec4(-1,  -1,  0.1, 2);
 	
 	vec3 tangent = vec3(1, 0, 0);
 	vec3 binormal = vec3(0, 0, 1);
@@ -66,6 +67,7 @@ void main() {
 	p += GerstnerWave(waveA, position, tangent, binormal);
 	p += GerstnerWave(waveB, position, tangent, binormal);
 	p += GerstnerWave(waveC, position, tangent, binormal);
+	p += GerstnerWave(waveD, position, tangent, binormal);
 	vec3 pos = p;
 	fragPos = vec3(ubo.model * vec4(pos, 1.0));
     gl_Position = ubo.proj * ubo.view * vec4(fragPos, 1.0);

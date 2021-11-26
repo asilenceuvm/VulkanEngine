@@ -23,6 +23,7 @@
 
 #include "engine.h"
 #include "utils.h"
+#include "assetManager.h"
 
 namespace PythonManager {
 	//python methods to interact with engine
@@ -77,6 +78,29 @@ namespace PythonManager {
 		return PyLong_FromLong(0);
 	}
 
+	static PyObject* add_game_object(PyObject* self, PyObject* args) {	
+		char* modelName;
+		char* objName;
+		if (PyArg_ParseTuple(args, "ss", &modelName, &objName)) {
+			Engine::addGameObject(AssetManager::models[modelName], objName);
+		}
+		
+		return PyLong_FromLong(0);
+	}
+
+	static PyObject* add_model(PyObject* self, PyObject* args) {
+		char* modelToAdd;
+		char* modelFilepath;
+		char* modelTexture;
+		if (PyArg_ParseTuple(args, "sss", &modelToAdd, &modelFilepath, & modelTexture)) {
+			Engine::modelToAdd = modelToAdd;
+			Engine::modelFilepath = modelFilepath;
+			Engine::modelTexture = modelTexture;
+		}
+
+		return PyLong_FromLong(0);
+	}
+
 	static PyObject* change_light_pos(PyObject* self, PyObject* args) {
 		float posX, posY, posZ;
 		if (PyArg_ParseTuple(args, "fff", &posX, &posY, &posZ)) {
@@ -100,6 +124,8 @@ namespace PythonManager {
 		{ "change_scale", change_scale, METH_VARARGS, "test print method"},
 		{ "change_translation", change_translation, METH_VARARGS, "test print method"},
 		{ "change_rotation", change_rotation, METH_VARARGS, "test print method"},
+		{ "add_game_object", add_game_object, METH_VARARGS, "test print method"},
+		{ "add_model", add_model, METH_VARARGS, "test print method"},
 		{ "get_tags", get_tags, METH_VARARGS, "test print method"},
 		{ "change_light_pos", change_light_pos, METH_VARARGS, "test print method"},
 		{ NULL, NULL, 0, NULL }

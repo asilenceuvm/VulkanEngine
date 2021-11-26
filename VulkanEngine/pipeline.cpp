@@ -66,9 +66,7 @@ void Pipeline::createGraphicsPipeline(const std::string& vertFilepath,
 	fragShaderStage.pSpecializationInfo = nullptr;
 	shaderStages.push_back(fragShaderStage);
 
-	spdlog::debug("{}", teseFilepath);
 	if (!teseFilepath.empty()) {
-		spdlog::debug("tess");
 		auto tescCode = readFile(tescFilepath);
 		auto teseCode = readFile(teseFilepath);
 		createShaderModule(tescCode, &tescShaderModule);

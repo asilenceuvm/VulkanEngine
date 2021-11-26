@@ -39,6 +39,11 @@
 
 std::vector<GameObject> Engine::gameObjects;
 glm::vec3 Engine::lightPos; //probably temporary
+std::string Engine::modelToAdd = "";
+std::string Engine::modelFilepath = "";
+std::string Engine::modelTexture = "";	
+bool Engine::reloadBuffers = false;
+std::mutex Engine::mtx; 
 
 Engine::Engine() {
 	loadGameObjects();
@@ -53,85 +58,33 @@ Engine::~Engine() {
         vkFreeMemory(device.device(), uniformBuffersMemory[i], nullptr);
     }
 	gameObjects.clear();
+	AssetManager::clearModels();
 	AssetManager::clearTextures();
 }
 
 
-
-void Engine::loadGameObjects() {
-	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
-	AssetManager::loadTexture(device, "textures/camel.jpg", "camel");
-	AssetManager::loadTexture(device, "textures/heightmap.png", "heightmap");
-	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
-	AssetManager::loadTexture(device, "textures/sand.jpg", "sand");
-	//std::array<std::string, 6> filepaths;
-	//right left top bottom front back
-	/*filepaths[0] = "textures/skybox/right.jpg";
-	filepaths[1] = "textures/skybox/left.jpg";
-	filepaths[2] = "textures/skybox/top.jpg";
-	filepaths[3] = "textures/skybox/bottom.jpg";
-	filepaths[4] = "textures/skybox/front.jpg";
-	filepaths[5] = "textures/skybox/back.jpg";*/
-	std::array<std::string, 6> filepaths = {
-		"textures/skybox2/right.png",
-		"textures/skybox2/left.png",
-		"textures/skybox2/top.png",
-		"textures/skybox2/bottom.png",
-		"textures/skybox2/front.png",
-		"textures/skybox2/back.png"
-	};
-
-	AssetManager::loadCubeMap(device, filepaths, "skybox");
-
-	std::shared_ptr<Model> model =
-		Model::createModelFromFile(device, "models/backpack/backpack.obj", AssetManager::textures["backpack"]);
-
-	auto gameObj = GameObject::createGameObject("room");
+void Engine::addGameObject(std::shared_ptr<Model> model, std::string name) {
+	Engine::mtx.lock();
+	auto gameObj = GameObject::createGameObject(name);
 	gameObj.model = model;
-	gameObj.transform.translation = { .0f, .0f, 2.5f };
-	gameObj.transform.scale = glm::vec3(0.5f);
-	gameObjects.push_back(std::move(gameObj));
-
-	auto gameObj1 = GameObject::createGameObject("water");
-	gameObj1.model = Model::generateMesh(device, 400, 400, AssetManager::textures["skybox"]);
-	gameObj1.transform.scale = glm::vec3(0.5f);
-	gameObj1.transform.translation = glm::vec3(-75, -5, -75);
-	gameObjects.push_back(std::move(gameObj1));
-
-	auto gameObj4 = GameObject::createGameObject("terrain");
-	gameObj4.model = //generateMesh(25, 25, AssetManager::textures["sand"], "textures/heightmap.png");
-	gameObj4.model = Model::generateTerrain(device);
-	gameObj4.transform.translation = glm::vec3(0, 5, 0);
-	gameObjects.push_back(std::move(gameObj4));
-
-	std::shared_ptr<Model> model2 =
-		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
-	for (int i = 0; i < 5; i++) {
-		auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(i));
-		gameObj2.model = model2;
-		gameObj2.transform.translation = { 1.f, .0f + i * 0.1f, 2.5f };
-		gameObj2.transform.scale = glm::vec3(1.f);
-		gameObjects.push_back(std::move(gameObj2));
-	}
-
-	std::shared_ptr<Model> model3 =
-		Model::createModelFromFile(device, "models/textured_cube.obj", AssetManager::textures["skybox"]);
-
-	auto gameObj3 = GameObject::createGameObject("skybox");
-	gameObj3.model = model3;
-	gameObjects.push_back(std::move(gameObj3));
+	Engine::gameObjects.push_back(std::move(gameObj));
+	//Engine::gameObjects.insert(Engine::gameObjects.end() - 2, std::move(gameObj));
+	//auto it = Engine::gameObjects.begin() + Engine::gameObjects.size() - 1;
+	//std::rotate(it, it + 1, Engine::gameObjects.end());
+	Engine::reloadBuffers = true;
+	Engine::mtx.unlock();
+}
 
 
-	lightPos = glm::vec3(-40, 20, 100);
-
-	uniformBuffers.resize(Engine::gameObjects.size());
-    uniformBuffersMemory.resize(Engine::gameObjects.size());
+void Engine::updateBuffers() {
+	uniformBuffers.resize(gameObjects.size());
+    uniformBuffersMemory.resize(gameObjects.size());
 	size_t bufferSize;
-    for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
-		if (Engine::gameObjects[i].getTag() == "skybox") {
+    for (size_t i = 0; i < gameObjects.size(); i++) {
+		if (gameObjects[i].getTag() == "skybox") {
 			bufferSize = sizeof(Constants::CubeMapUBO);
 		}
-		else if (Engine::gameObjects[i].getTag() == "terrain") {
+		else if (gameObjects[i].getTag() == "terrain") {
 			bufferSize = sizeof(Constants::TesselationUBO);
 		}
 		else {
@@ -149,9 +102,10 @@ void Engine::loadGameObjects() {
 	descriptorManager.createDescriptorPool(static_cast<uint32_t>(gameObjects.size() * 2));
 	descriptorManager.createDescriptorSets(static_cast<uint32_t>(gameObjects.size() * 2));
 
+	//spdlog::debug("{}", gameObjects.size());
 
-	for (size_t i = 0; i < Engine::gameObjects.size(); i++) {
-		if (Engine::gameObjects[i].getTag() == "skybox") {
+	for (size_t i = 0; i < gameObjects.size(); i++) {
+		if (gameObjects[i].getTag() == "skybox") {
 			bufferSize = sizeof(Constants::CubeMapUBO);
 			descriptorManager.updateObjectDescriptorSet(
 				gameObjects[i],
@@ -160,7 +114,7 @@ void Engine::loadGameObjects() {
 				uniformBuffers[i],
 				gameObjects[i].model->getTexture()->getImageView());
 		}
-		else if (Engine::gameObjects[i].getTag() == "terrain") {
+		else if (gameObjects[i].getTag() == "terrain") {
 			bufferSize = sizeof(Constants::TesselationUBO);
 			descriptorManager.updateTerrainDescriptorSet(
 				gameObjects[i],
@@ -183,20 +137,93 @@ void Engine::loadGameObjects() {
 	}
 }
 
+void Engine::loadGameObjects() {
+	AssetManager::loadTexture(device, "models/backpack/diffuse.jpg", "backpack", true);
+	AssetManager::loadTexture(device, "textures/camel.jpg", "camel");
+	AssetManager::loadTexture(device, "textures/heightmap.png", "heightmap");
+	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
+	AssetManager::loadTexture(device, "textures/sand.jpg", "sand");
+	std::array<std::string, 6> filepaths = {
+		"textures/skybox2/right.png",
+		"textures/skybox2/left.png",
+		"textures/skybox2/top.png",
+		"textures/skybox2/bottom.png",
+		"textures/skybox2/front.png",
+		"textures/skybox2/back.png"
+	};
+	AssetManager::loadCubeMap(device, filepaths, "skybox");
+
+	AssetManager::loadModel(device, "backpack", "models/backpack/backpack.obj", "backpack"); 
+	AssetManager::loadModel(device, "apple", "models/apple.obj", "apple"); 
+	AssetManager::loadModel(device, "skybox", "models/textured_cube.obj", "skybox"); 
+
+	auto gameObj = GameObject::createGameObject("room");
+	gameObj.model = AssetManager::models["backpack"];
+	gameObj.transform.translation = { .0f, .0f, 2.5f };
+	gameObj.transform.scale = glm::vec3(0.5f);
+	gameObjects.push_back(std::move(gameObj));
+
+	auto gameObj1 = GameObject::createGameObject("water");
+	gameObj1.model = Model::generateMesh(device, 400, 400, AssetManager::textures["skybox"]);
+	gameObj1.transform.scale = glm::vec3(0.5f);
+	gameObj1.transform.translation = glm::vec3(-75, -5, -75);
+	gameObjects.push_back(std::move(gameObj1));
+
+	auto gameObj4 = GameObject::createGameObject("terrain");
+	gameObj4.model = Model::generateTerrain(device, 64, 1.f);
+	gameObj4.transform.translation = glm::vec3(0, 4, 0);
+	gameObjects.push_back(std::move(gameObj4));
+
+
+	for (int i = 0; i < 5; i++) {
+		auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(i));
+		gameObj2.model = AssetManager::models["apple"];
+		gameObj2.transform.translation = { 1.f, .0f + i * 0.1f, 2.5f };
+		gameObj2.transform.scale = glm::vec3(1.f);
+		gameObjects.push_back(std::move(gameObj2));
+	}
+
+
+	auto gameObj3 = GameObject::createGameObject("skybox");
+	gameObj3.model = AssetManager::models["skybox"];
+	gameObjects.push_back(std::move(gameObj3));
+
+
+	lightPos = glm::vec3(-40, 20, 100);
+
+	updateBuffers();
+}
+
 
 void Engine::render() {
 	glfwPollEvents();
-	if (auto commandBuffer = renderer.beginFrame()) {
-		renderer.beginSwapChainRenderPass(commandBuffer);
-		renderManager.renderGameObjects(commandBuffer, gameObjects, camera, uniformBuffersMemory);
-		renderer.endSwapChainRenderPass(commandBuffer);
-		renderer.endFrame();
+	auto commandBuffer = renderer.beginFrame();
+	if (commandBuffer && !reloadBuffers) {
+		//Engine::mtx.lock();
+		//if (reloadBuffers == true) {
+			//updateBuffers();
+			//reloadBuffers = false;
+		//}
+		//else {
+			renderer.beginSwapChainRenderPass(commandBuffer);
+			renderManager.renderGameObjects(commandBuffer, gameObjects, camera, uniformBuffersMemory);
+			renderer.endSwapChainRenderPass(commandBuffer);
+			renderer.endFrame();
+		//}
+		//Engine::mtx.unlock();
+	}
+	if (reloadBuffers == true) {
+		Engine::mtx.lock();
+		updateBuffers();
+		reloadBuffers = false;
+		Engine::mtx.unlock();
+		//updateBuffers();
 	}
 }
 
 void Engine::update() {
 	//PythonManager::runUpdates();
-	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 500.f);
+	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 1000.f);
 	if (InputManager::keys[GLFW_KEY_W]) {
 		camera.moveCamForward(.05f);
 	}
@@ -216,6 +243,15 @@ void Engine::update() {
 	if (InputManager::keys[GLFW_KEY_ESCAPE]) {
 		shutdown(); 
 	}
+
+	if (modelToAdd != "" && modelFilepath != "" && modelTexture != "") {
+		AssetManager::loadTexture(device, modelTexture, modelTexture);
+		AssetManager::loadModel(device, modelToAdd, modelFilepath, modelTexture); 
+		modelToAdd = "";
+		modelFilepath = "";
+		modelTexture = "";
+	}
+
 }
 
 void Engine::run() {

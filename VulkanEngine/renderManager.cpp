@@ -87,7 +87,6 @@ void RenderManager::createPipeline(VkRenderPass renderPass) {
 	pipelineConfigTerrain.renderPass = renderPass;
 	pipelineConfigTerrain.pipelineLayout = pipelineLayouts.terrain;
 	pipelines[3] = std::make_unique<Pipeline>(device, "shaders/terrainvert.spv", "shaders/terrainfrag.spv", pipelineConfigTerrain, "shaders/tese.spv", "shaders/tesc.spv");
-	spdlog::debug("{}", pipelines.size());
 }
 
 
@@ -150,6 +149,7 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer,
 	tesselationUBO.modelview = camera.getView() * gameObjects[index].transform.mat4();
 	tesselationUBO.lightPos = glm::vec4(Engine::lightPos, 1); 
 	tesselationUBO.viewportDim = glm::vec2((float)800, (float)600);
+	tesselationUBO.tessellationFactor = 10.0f;
 
 	frustum.update(tesselationUBO.projection * tesselationUBO.modelview);
 	memcpy(tesselationUBO.frustumPlanes, frustum.planes.data(), sizeof(glm::vec4) * 6);

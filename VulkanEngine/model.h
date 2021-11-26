@@ -58,7 +58,7 @@ public:
 	void draw(VkCommandBuffer commandBuffer);
 
 	static std::unique_ptr<Model> createModelFromFile(Device& device, const std::string& filepath, std::shared_ptr<Texture> texture);
-	static std::unique_ptr<Model> generateTerrain(Device& device);
+	static std::unique_ptr<Model> generateTerrain(Device& device, float patchSize, float uvScale);
 	static std::unique_ptr<Model> generateMesh(Device& device, int length, int width, std::shared_ptr<Texture> texture, std::string heightmap = "");
 
 	std::shared_ptr<Texture> getTexture() { return texture; }
