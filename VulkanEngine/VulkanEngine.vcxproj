@@ -218,6 +218,7 @@ pause</Command>
     <ClInclude Include="device.h" />
     <ClInclude Include="engine.h" />
     <ClInclude Include="gameObject.h" />
+    <ClInclude Include="gjk.h" />
     <ClInclude Include="inputManager.h" />
     <ClInclude Include="model.h" />
     <ClInclude Include="particle.h" />

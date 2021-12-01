@@ -76,23 +76,17 @@ void Engine::loadGameObjects() {
 	}
 
 	lightPos = glm::vec3(0, 1, 3);*/
-	AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
+	/*AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
 
 	std::shared_ptr<Model> model =
-		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);
-	// Make a triangle of objects
-	for (int i = 0; i < 4; i++) {
-		for (int j = i; j < 3; j++) {
-			auto gameObj1 = GameObject::createGameObject("apple" + std::to_string(i) + std::to_string(j));
-			gameObj1.model = model;
-			gameObj1.transform.translation = { 0.f + i*0.1f, 0.f + j*0.1f - i*0.1f, 0.f };
-			gameObj1.transform.scale = glm::vec3(1.f);
-			gameObj1.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
-			gameObj1.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
-			gameObjects.push_back(std::move(gameObj1));
-		}
-	}
-	auto gameObj4 = GameObject::createGameObject("apple" + std::to_string(0));
+		Model::createModelFromFile(device, "models/apple.obj", AssetManager::textures["apple"]);*/
+
+	AssetManager::loadTexture(device, "textures/white.png", "white");
+
+	std::shared_ptr<Model> model =
+		Model::createModelFromFile(device, "models/textured_cube.obj", AssetManager::textures["white"]);
+
+	/*auto gameObj4 = GameObject::createGameObject("apple" + std::to_string(0));
 	gameObj4.model = model;
 	gameObj4.transform.translation = { 0.f, 0.f, 0.f };
 	gameObj4.transform.scale = glm::vec3(1.f);
@@ -106,27 +100,26 @@ void Engine::loadGameObjects() {
 	gameObj2.transform.scale = glm::vec3(1.f);
 	gameObj2.particle.linearVelocity = glm::vec3(0.0075f, 0.f, 0.f);
 	gameObj2.particle.angularVelocity = glm::vec3(0.f, 3.f, 0.f);
-	gameObjects.push_back(std::move(gameObj2));
+	gameObjects.push_back(std::move(gameObj2));*/
 
-	auto gameObj3 = GameObject::createGameObject("apple" + std::to_string(0));
-	gameObj3.model = model;
-	gameObj3.transform.translation = { 0.5f, -0.175f, 0.f };
-	gameObj3.transform.scale = glm::vec3(1.f);
-	gameObj3.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObj3.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObjects.push_back(std::move(gameObj3));
+	auto gameObjCube = GameObject::createGameObject("cube" + std::to_string(0));
+	gameObjCube.model = model;
+	gameObjCube.transform.translation = { 0.f, 0.f, 0.f };
+	gameObjCube.transform.scale = glm::vec3(0.1f);
+	gameObjCube.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjCube.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjects.push_back(std::move(gameObjCube));
 
-	auto gameObjPlayable = GameObject::createGameObject("player_apple");
+	auto gameObjPlayable = GameObject::createGameObject("player_cube");
 	gameObjPlayable.model = model;
 	gameObjPlayable.transform.translation = { -0.5f, 0.5f, 0.f };
-	gameObjPlayable.transform.scale = glm::vec3(1.f);
+	gameObjPlayable.transform.scale = glm::vec3(0.1f);
 	gameObjPlayable.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjects.push_back(std::move(gameObjPlayable));
 
 	lightPos = glm::vec3(0, 1, 3);
 }
-
 
 void Engine::render() {
 	glfwPollEvents();
@@ -166,28 +159,28 @@ void Engine::update() {
 	}*/
 	if (InputManager::keys[GLFW_KEY_T]) {
 		for (auto& obj : gameObjects) {
-			if (obj.getTag() == "player_apple") {
+			if (obj.getTag() == "player_cube") {
 				obj.particle.linearVelocity += glm::vec3{0.f, 0.0001f, 0.f};
 			}
 		}
 	}
 	if (InputManager::keys[GLFW_KEY_G]) {
 		for (auto& obj : gameObjects) {
-			if (obj.getTag() == "player_apple") {
+			if (obj.getTag() == "player_cube") {
 				obj.particle.linearVelocity += glm::vec3{ 0.f, -0.0001f, 0.f };
 			}
 		}
 	}
 	if (InputManager::keys[GLFW_KEY_F]) {
 		for (auto& obj : gameObjects) {
-			if (obj.getTag() == "player_apple") {
+			if (obj.getTag() == "player_cube") {
 				obj.particle.linearVelocity += glm::vec3{ -0.0001f, 0.f, 0.f };
 			}
 		}
 	}
 	if (InputManager::keys[GLFW_KEY_H]) {
 		for (auto& obj : gameObjects) {
-			if (obj.getTag() == "player_apple") {
+			if (obj.getTag() == "player_cube") {
 				obj.particle.linearVelocity += glm::vec3{ 0.0001f, 0.f, 0.f };
 			}
 		}
@@ -240,15 +233,31 @@ void Engine::run() {
 
 // Handles physics objects in scene
 void Engine::physics() {
+	// Upkeep
+	//decayVecolities();
+	
 	// Check for collisions
-	decayVecolities();
 	broadDetectionPhase();
 	for (auto& obj : gameObjects) {
+		/* 1) --- Calculate External Forces--- 
+		 * Forces such as gravity or objects colliding.
+		 */
 		// Gravity vector
 		glm::vec3 gravityAcceleration{ 0.f, 0.f, 0.f };//-0.000005f, 0.f };
-		// Gravity applied directly on top (Top center)
+		// Location of force (Top)
 		glm::vec3 point{ 0.f, obj.particle.shape.width / 2.f, 0.f };
-		// Compute the force and torque of the gravity applied on top of object
+		glm::vec3 forceExternal = gravityAcceleration;
+		/* 2) --- Calculate Constraint Forces--- 
+		 * Forces that keep an object where it should be. For instance
+		 * this will keep joints together, stop an object from clipping
+		 * into another, etc.
+		 */
+		glm::vec3 forceConstraint{ 0.f, 0.f, 0.f };
+		/* 3) --- Apply Forces and Simulate Motion--- 
+		 * Finally apply the two forces for each object, changing
+		 * based on the mass of the object.
+		 */
+		glm::vec3 force = forceExternal + forceConstraint;
 		obj.particle.computeForceAndTorque(gravityAcceleration, point * 50.f);
 		// Compute the object's accelerations
 		obj.particle.computeLinearAcceleration();
@@ -303,9 +312,12 @@ int Engine::testAABBOverlap(std::vector<glm::vec3> box1, std::vector<glm::vec3> 
 
 void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 	// If both objects are spheres
-	int colliding = Engine::sphereSphereCollision(obj1->transform.translation, 0.05f, obj2->transform.translation, 0.05f);
-	//std::cout << colliding << std::endl;
-	if (colliding) {
+	//int colliding = Engine::sphereSphereCollision(obj1->transform.translation, 0.05f, obj2->transform.translation, 0.05f);
+	obj1->calculateCurrentWorldSpaceVectors();
+	obj2->calculateCurrentWorldSpaceVectors();
+	bool colliding = GJK(&obj1->currentWorldSpaceCollider, &obj2->currentWorldSpaceCollider);
+	std::cout << colliding << std::endl;
+	/*if (colliding) {
 		glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
 		normalizedDirection = glm::normalize(normalizedDirection);
 		// Compute forces and torques for colliding objects
@@ -337,7 +349,7 @@ void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 		obj1->transform.rotation += obj1->particle.angularVelocity;
 		obj2->transform.translation += obj2->particle.linearVelocity;
 		obj2->transform.rotation += obj2->particle.angularVelocity;
-	}
+	}*/
 }
 
 int Engine::sphereSphereCollision(glm::vec3 center1, float radius1, glm::vec3 center2, float radius2) {

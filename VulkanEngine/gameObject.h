@@ -35,6 +35,8 @@ public:
 
 	Particle particle = Particle(1, glm::vec3{ 0.f, 0.f, 0.f }, glm::vec3{ 0.f, 0.f, 0.f });
 
+	MeshCollider currentWorldSpaceCollider;
+
 	static GameObject createGameObject(std::string tag) {
 		static id_t currentId = 0;
 		return GameObject{ currentId++, tag };
@@ -44,6 +46,11 @@ public:
 	GameObject& operator=(const GameObject&) = delete;
 	GameObject(GameObject&&) = default;
 	GameObject& operator=(GameObject&&) = default;
+
+	void calculateCurrentWorldSpaceVectors() {
+		currentWorldSpaceCollider.SetVertices(std::vector<glm::vec3> { glm::vec3{ 0 + transform.translation.x, 0 + transform.translation.y, 0 + transform.translation.z }, glm::vec3{ 0 + transform.translation.x, 0 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 0 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 0 + transform.translation.y, 0 + transform.translation.z },
+															 glm::vec3{ 0 + transform.translation.x, 1 + transform.translation.y, 0 + transform.translation.z }, glm::vec3{ 0 + transform.translation.x, 1 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 1 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 1 + transform.translation.y, 0 + transform.translation.z } });
+	}
 
 	id_t getId() {
 		return id;
