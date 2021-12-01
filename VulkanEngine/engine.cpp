@@ -317,8 +317,12 @@ void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 	obj2->calculateCurrentWorldSpaceVectors();
 	bool colliding = GJK(&obj1->currentWorldSpaceCollider, &obj2->currentWorldSpaceCollider);
 	std::cout << colliding << std::endl;
-	/*if (colliding) {
-		glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
+	if (colliding) {
+		// Collision Details
+		std::cout << obj1->getTag() << " -> " << obj2->getTag() << std::endl;
+
+
+		/*	glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
 		normalizedDirection = glm::normalize(normalizedDirection);
 		// Compute forces and torques for colliding objects
 		glm::vec3 computedForceObj1{ obj2->particle.linearVelocity.x - obj1->particle.linearVelocity.x, obj2->particle.linearVelocity.y - obj1->particle.linearVelocity.y, obj2->particle.linearVelocity.z - obj1->particle.linearVelocity.z };
@@ -348,8 +352,8 @@ void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 		obj1->transform.translation += obj1->particle.linearVelocity;
 		obj1->transform.rotation += obj1->particle.angularVelocity;
 		obj2->transform.translation += obj2->particle.linearVelocity;
-		obj2->transform.rotation += obj2->particle.angularVelocity;
-	}*/
+		obj2->transform.rotation += obj2->particle.angularVelocity;*/
+	}
 }
 
 int Engine::sphereSphereCollision(glm::vec3 center1, float radius1, glm::vec3 center2, float radius2) {

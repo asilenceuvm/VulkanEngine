@@ -7,6 +7,7 @@
 
 #include "model.h"
 #include "particle.h"
+#include "gjk.h"
 
 struct TransformComponent {
 	glm::vec3 translation{};
@@ -48,8 +49,12 @@ public:
 	GameObject& operator=(GameObject&&) = default;
 
 	void calculateCurrentWorldSpaceVectors() {
-		currentWorldSpaceCollider.SetVertices(std::vector<glm::vec3> { glm::vec3{ 0 + transform.translation.x, 0 + transform.translation.y, 0 + transform.translation.z }, glm::vec3{ 0 + transform.translation.x, 0 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 0 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 0 + transform.translation.y, 0 + transform.translation.z },
-															 glm::vec3{ 0 + transform.translation.x, 1 + transform.translation.y, 0 + transform.translation.z }, glm::vec3{ 0 + transform.translation.x, 1 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 1 + transform.translation.y, 1 + transform.translation.z }, glm::vec3{ 1 + transform.translation.x, 1 + transform.translation.y, 0 + transform.translation.z } });
+		std::vector<glm::vec3> worldSpaceColliderVectors;
+		for (auto& colliderVector : particle.colliderVectors) // access by reference to avoid copying
+		{
+			worldSpaceColliderVectors.push_back(glm::vec3{ colliderVector.x + transform.translation.x, colliderVector.y + transform.translation.y, colliderVector.z + transform.translation.z });
+		}
+		currentWorldSpaceCollider.SetVertices(worldSpaceColliderVectors);
 	}
 
 	id_t getId() {

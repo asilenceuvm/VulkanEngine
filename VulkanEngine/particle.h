@@ -3,8 +3,6 @@
 #include "glm/glm.hpp"
 #include "glm/gtx/string_cast.hpp"
 
-#include "gjk.h"
-
 typedef struct {
 	float width;
 	float height;
@@ -21,7 +19,8 @@ public:
 	/* --- Physics Properties --- */
 	float drag = 0.001f;
 	float angular_drag = 0;
-	MeshCollider collider;
+	std::vector<glm::vec3> colliderVectors { glm::vec3{ 0, 0, 0 }, glm::vec3{ 0, 0, 0.2 }, glm::vec3{ 0.2, 0, 0.2 }, glm::vec3{ 0.2, 0, 0 },
+										     glm::vec3{ 0, 0.2, 0 }, glm::vec3{ 0, 0.2, 0.2 }, glm::vec3{ 0.2, 0.2, 0.2 }, glm::vec3{ 0.2, 0.2, 0 } };
 	BoxShape shape;
 	/* --- Object Locking ---
 	// 0 = unlocked, 1 = locked */
@@ -44,8 +43,6 @@ public:
 		shape.depth = 1.f;
 		calculateBoxInertia(&shape);
 		// Making a box for testing
-		collider.SetVertices(std::vector<glm::vec3> { glm::vec3{ 0, 0, 0 }, glm::vec3{ 0, 0, 1 }, glm::vec3{ 1, 0, 1 }, glm::vec3{ 1, 0, 0 },
-													  glm::vec3{ 0, 1, 0 }, glm::vec3{ 0, 1, 1 }, glm::vec3{ 1, 1, 1 }, glm::vec3{ 1, 1, 0 } });
 	}
 
 	void calculateBoxInertia(BoxShape* shape) {
