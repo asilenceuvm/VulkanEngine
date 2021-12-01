@@ -313,14 +313,19 @@ int Engine::testAABBOverlap(std::vector<glm::vec3> box1, std::vector<glm::vec3> 
 void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 	// If both objects are spheres
 	//int colliding = Engine::sphereSphereCollision(obj1->transform.translation, 0.05f, obj2->transform.translation, 0.05f);
+	// Otherwise, use GJK
 	obj1->calculateCurrentWorldSpaceVectors();
 	obj2->calculateCurrentWorldSpaceVectors();
-	bool colliding = GJK(&obj1->currentWorldSpaceCollider, &obj2->currentWorldSpaceCollider);
-	std::cout << colliding << std::endl;
-	if (colliding) {
+	CollisionInfo info1 = GJK(&obj1->currentWorldSpaceCollider, &obj2->currentWorldSpaceCollider);
+	CollisionInfo info2 = GJK(&obj2->currentWorldSpaceCollider, &obj1->currentWorldSpaceCollider);
+	//std::cout << colliding << std::endl;
+	if (info1.colliding) {
 		// Collision Details
-		std::cout << obj1->getTag() << " -> " << obj2->getTag() << std::endl;
-
+		//std::cout << obj1->getTag() << " -> " << obj2->getTag() << std::endl;
+		std::cout << "(" << info1.collisionCentroid.x << "," << info1.collisionCentroid.y << "," << info1.collisionCentroid.z << ")" << std::endl;
+		//std::cout << "(" << info2.collisionCentroid.x << "," << info2.collisionCentroid.y << "," << info2.collisionCentroid.z << ")" << std::endl;
+		//std::cout << "(" << std::abs(info1.collisionCentroid.x)-std::abs(info2.collisionCentroid.x) << "," << std::abs(info1.collisionCentroid.y) - std::abs(info2.collisionCentroid.y) << "," << std::abs(info1.collisionCentroid.z) - std::abs(info2.collisionCentroid.z) << ")" << std::endl;
+		obj1->particle.linearVelocity = glm::vec3{ info1.collisionCentroid.x / 10.0f, info1.collisionCentroid.y / 10.0f, info1.collisionCentroid.z / 10.0f };
 
 		/*	glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
 		normalizedDirection = glm::normalize(normalizedDirection);

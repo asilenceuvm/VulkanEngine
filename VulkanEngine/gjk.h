@@ -4,6 +4,11 @@
 #include <vector>
 #include "glm/glm.hpp"
 
+struct CollisionInfo {
+	bool colliding;
+	glm::vec3 collisionCentroid;
+};
+
 struct Collider {
 	virtual glm::vec3 FindFurthestPoint(glm::vec3  direction) const = 0;
 };
@@ -68,17 +73,11 @@ public:
 	auto end()   const { return m_points.end() - (4 - m_size); }
 };
 
-inline bool SameDirection(
-	const glm::vec3& direction,
-	const glm::vec3& ao)
-{
+inline bool SameDirection(const glm::vec3& direction, const glm::vec3& ao) {
 	return glm::dot(direction, ao) > 0;
 }
 
-inline bool Line(
-	Simplex& points,
-	glm::vec3& direction)
-{
+inline CollisionInfo Line(Simplex& points, glm::vec3& direction) {
 	glm::vec3 a = points[0];
 	glm::vec3 b = points[1];
 
@@ -94,13 +93,12 @@ inline bool Line(
 		direction = ao;
 	}
 
-	return false;
+	CollisionInfo info;
+	info.colliding = false;
+	return info;
 }
 
-inline bool Triangle(
-	Simplex& points,
-	glm::vec3& direction)
-{
+inline CollisionInfo Triangle(Simplex& points, glm::vec3& direction) {
 	glm::vec3 a = points[0];
 	glm::vec3 b = points[1];
 	glm::vec3 c = points[2];
@@ -139,12 +137,12 @@ inline bool Triangle(
 		}
 	}
 
-	return false;
+	CollisionInfo info;
+	info.colliding = false;
+	return info;
 }
 
-inline bool Tetrahedron(
-	Simplex& points,
-	glm::vec3& direction)
+inline CollisionInfo Tetrahedron(Simplex& points, glm::vec3& direction)
 {
 	glm::vec3 a = points[0];
 	glm::vec3 b = points[1];
@@ -172,13 +170,13 @@ inline bool Tetrahedron(
 		return Triangle(points = { a, d, b }, direction);
 	}
 
-	return true;
+	CollisionInfo info;
+	info.colliding = true;
+	info.collisionCentroid = glm::vec3{ (a.x + b.x + c.x + d.x) / 4.0f, (a.y + b.y + c.y + d.y) / 4.0f, (a.z + b.z + c.z + d.z) / 4.0f };
+	return info;
 }
 
-inline bool NextSimplex(
-	Simplex& points,
-	glm::vec3& direction)
-{
+inline CollisionInfo NextSimplex(Simplex& points, glm::vec3& direction) {
 	switch (points.size()) {
 	case 2: return Line(points, direction);
 	case 3: return Triangle(points, direction);
@@ -186,10 +184,12 @@ inline bool NextSimplex(
 	}
 
 	// never should be here
-	return false;
+	CollisionInfo info;
+	info.colliding = false;
+	return info;
 }
 
-inline bool GJK(const Collider* colliderA, const Collider* colliderB)
+inline CollisionInfo GJK(const Collider* colliderA, const Collider* colliderB)
 {
 	// Get initial support point in any direction
 	glm::vec3 support = Support(colliderA, colliderB, glm::vec3{ 1, 0, 0 });
@@ -205,13 +205,19 @@ inline bool GJK(const Collider* colliderA, const Collider* colliderB)
 		support = Support(colliderA, colliderB, direction);
 
 		if (glm::dot(support, direction) <= 0) {
-			return false; // no collision
+			//return false; // no collision
+			CollisionInfo info;
+			info.colliding = false;
+			return info;
 		}
 
 		points.push_front(support);
 
-		if (NextSimplex(points, direction)) {
-			return true;
+		CollisionInfo info = NextSimplex(points, direction);
+
+		if (info.colliding) {
+
+			return info;
 		}
 	}
 }
