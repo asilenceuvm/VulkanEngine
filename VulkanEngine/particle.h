@@ -19,8 +19,8 @@ public:
 	/* --- Physics Properties --- */
 	float drag = 0.001f;
 	float angular_drag = 0;
-	std::vector<glm::vec3> colliderVectors { glm::vec3{ 0, 0, 0 }, glm::vec3{ 0, 0, 0.2 }, glm::vec3{ 0.2, 0, 0.2 }, glm::vec3{ 0.2, 0, 0 },
-										     glm::vec3{ 0, 0.2, 0 }, glm::vec3{ 0, 0.2, 0.2 }, glm::vec3{ 0.2, 0.2, 0.2 }, glm::vec3{ 0.2, 0.2, 0 } };
+	std::vector<glm::vec3> colliderVectors { glm::vec3{ -0.1, -0.1, -0.1 }, glm::vec3{ -0.1, -0.1, 0.1 }, glm::vec3{ 0.1, -0.1, 0.1 }, glm::vec3{ 0.1, -0.1, -0.1 },
+										     glm::vec3{ -0.1, 0.1, -0.1 }, glm::vec3{ -0.1, 0.1, 0.1 }, glm::vec3{ 0.1, 0.1, 0.1 }, glm::vec3{ 0.1, 0.1, -0.1 } };
 	BoxShape shape;
 	/* --- Object Locking ---
 	// 0 = unlocked, 1 = locked */

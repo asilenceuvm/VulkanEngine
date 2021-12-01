@@ -322,10 +322,22 @@ void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 	if (info1.colliding) {
 		// Collision Details
 		//std::cout << obj1->getTag() << " -> " << obj2->getTag() << std::endl;
-		std::cout << "(" << info1.collisionCentroid.x << "," << info1.collisionCentroid.y << "," << info1.collisionCentroid.z << ")" << std::endl;
+		//std::cout << "(" << info1.collisionCentroid.x << "," << info1.collisionCentroid.y << "," << info1.collisionCentroid.z << ")" << std::endl;
 		//std::cout << "(" << info2.collisionCentroid.x << "," << info2.collisionCentroid.y << "," << info2.collisionCentroid.z << ")" << std::endl;
 		//std::cout << "(" << std::abs(info1.collisionCentroid.x)-std::abs(info2.collisionCentroid.x) << "," << std::abs(info1.collisionCentroid.y) - std::abs(info2.collisionCentroid.y) << "," << std::abs(info1.collisionCentroid.z) - std::abs(info2.collisionCentroid.z) << ")" << std::endl;
-		obj1->particle.linearVelocity = glm::vec3{ info1.collisionCentroid.x / 10.0f, info1.collisionCentroid.y / 10.0f, info1.collisionCentroid.z / 10.0f };
+		//obj1->particle.linearVelocity = glm::normalize(glm::vec3{ std::abs(info1.collisionCentroid.x) - std::abs(info2.collisionCentroid.x), std::abs(info1.collisionCentroid.y) - std::abs(info2.collisionCentroid.y), std::abs(info1.collisionCentroid.z) - std::abs(info2.collisionCentroid.z) }) / 100.0f;
+		
+		// So we know if we add the velocity of the other guy it will move it in the expected direction, HOWEVER, this does not
+		// deal with the constraint forces that should also be added so the objects stop having collisions (ie. the sticky issue)
+
+		// Regular force (Add/Subtract velocities)
+		obj1->particle.linearVelocity += ((obj2->particle.linearVelocity / 2.0f) - (obj1->particle.linearVelocity / 2.0f));
+
+		// Constraint force (Make the objects stop touching so we don't have a bunch of collisions and weird velocity bugs)
+		// The easiest way to guarentee objects stop touching is to simply move them in the opposite direction of eachother,
+		// let's try to do this by calculating the normal vector from the centroids of both objects (approximately where they collided).
+		// TODO: This normal seems to go in the wrong direction, maybe we have to use the normal tangent instead?
+		obj1->particle.linearVelocity += glm::normalize(glm::vec3{ std::abs(info1.collisionCentroid.x) - std::abs(info2.collisionCentroid.x), std::abs(info1.collisionCentroid.y) - std::abs(info2.collisionCentroid.y), std::abs(info1.collisionCentroid.z) - std::abs(info2.collisionCentroid.z) }) / 10000.0f;
 
 		/*	glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
 		normalizedDirection = glm::normalize(normalizedDirection);
