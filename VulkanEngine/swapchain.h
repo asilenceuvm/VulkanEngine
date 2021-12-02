@@ -40,6 +40,7 @@ public:
 	size_t imageCount() { return swapChainImages.size(); }
 	VkFormat getSwapChainImageFormat() { return swapChainImageFormat; }
 	VkExtent2D getSwapChainExtent() { return swapChainExtent; }
+	std::vector<VkImage> getSwapChainImages() { return swapChainImages; }
 	uint32_t width() { return swapChainExtent.width; }
 	uint32_t height() { return swapChainExtent.height; }
 

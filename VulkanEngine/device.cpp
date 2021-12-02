@@ -543,3 +543,15 @@ void Device::createImageWithInfo(const VkImageCreateInfo &imageInfo, VkMemoryPro
 	}
 }
 
+bool Device::supportsBlit(VkPhysicalDevice device) {
+	bool supportsBlit = true;
+	VkFormatProperties formatProps;
+
+	vkGetPhysicalDeviceFormatProperties(physicalDevice, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
+	if (!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
+		spdlog::warn("Device doesn't support blitting");
+		supportsBlit = false;
+	}
+
+	return supportsBlit;
+}

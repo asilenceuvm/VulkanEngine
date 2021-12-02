@@ -28,6 +28,7 @@ public:
 	//getters
 	VkRenderPass getSwapChainRenderPass() const { return swapchain->getRenderPass(); }
 	bool isFrameInProgress() const { return isFrameStarted; }
+	VkImage getCurrentImage() { return swapchain->getSwapChainImages()[currentImageIndex]; }
 	VkCommandBuffer getCurrentCommandBuffer() const {
 		return commandBuffers[currentFrameIndex];
 	}

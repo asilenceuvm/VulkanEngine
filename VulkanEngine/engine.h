@@ -39,6 +39,8 @@ public:
 	static std::string modelToAdd;
 	static std::string modelFilepath;
 	static std::string modelTexture;
+	static std::vector<std::vector<char*>> curImage;
+	static std::atomic<bool> takeImage;
 private:
 	Window window{width, height, "Vulkan"};
 	Device device{ window };
@@ -53,6 +55,8 @@ private:
 
 	void loadGameObjects();
 	void updateBuffers();
+	void addModel();
+	void getCurrentImage();
 
 	void shutdown();
 };

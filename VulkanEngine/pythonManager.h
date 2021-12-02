@@ -119,6 +119,66 @@ namespace PythonManager {
 		return listObj;
 	}
 
+	static PyObject* get_cur_image(PyObject* self, PyObject* args) {
+		PyObject* cur_image;
+		Engine::takeImage = true;
+		while (Engine::takeImage == true) {}
+		PyObject* listObj = PyList_New(Engine::curImage.size());
+		PyObject* rValues = PyList_New(Engine::curImage[0].size());
+		PyObject* gValues = PyList_New(Engine::curImage[1].size());
+		PyObject* bValues = PyList_New(Engine::curImage[2].size());
+		spdlog::debug("{}", Engine::curImage[0].size());
+		//rValues = Py_BuildValue("[items]", Engine::curImage[0]);
+		//gValues = Py_BuildValue("[items]", Engine::curImage[1]);
+		//bValues = Py_BuildValue("[items]", Engine::curImage[2]);
+
+		for (auto it = Engine::curImage[0].begin(); it != Engine::curImage[0].end(); it++){
+			PyList_Append(rValues, Py_BuildValue("c", *it));
+		}
+		for (auto it = Engine::curImage[1].begin(); it != Engine::curImage[1].end(); it++){
+			PyList_Append(gValues, Py_BuildValue("c", *it));
+		}
+		for (auto it = Engine::curImage[2].begin(); it != Engine::curImage[2].end(); it++){
+			PyList_Append(bValues, Py_BuildValue("c", *it));
+		}
+		/*for (int i = 0; i < Engine::curImage[0].size() / 2; ++i) {
+			//spdlog::debug("{}", Engine::curImage[0][i]);
+			//spdlog::debug("{}", *Engine::curImage[0][i]);
+			//PyObject* val = PyBytes_FromString(Engine::curImage[0][i]);
+			//PyObject* val = PyLong_FromUnsignedLong(*Engine::curImage[0][i]);
+			?/PyList_SetItem(rValues, i, val);
+		}
+		for (int i = 0; i < Engine::curImage[1].size() / 2; i++) {
+			//PyObject* val2 = PyBytes_FromString(Engine::curImage[1][i]);
+			PyObject* val2 = PyLong_FromUnsignedLong(*Engine::curImage[0][i]);
+			PyList_SetItem(gValues, i, val2);
+		}
+		for (int i = 0; i < Engine::curImage[2].size() / 2; i++) {
+			//PyObject* val3 = PyBytes_FromString(Engine::curImage[2][i]);
+			PyObject* val3 = PyLong_FromUnsignedLong(*Engine::curImage[0][i]);
+			PyList_SetItem(bValues, i, val3);
+		}*/
+		PyList_SetItem(listObj, 0, rValues);
+		PyList_SetItem(listObj, 1, gValues);
+		PyList_SetItem(listObj, 2, bValues);
+		//cur_image = Engine::curImage;
+		return listObj;
+		//return cur_image;
+	}
+
+	static PyObject* make_art(PyObject* self, PyObject* args) {
+		Engine::takeImage = true;
+		while (Engine::takeImage == true) {}
+
+
+		char* styleImage;
+		if (PyArg_ParseTuple(args, "s", &styleImage)) {
+			std::string pystring = std::string("tfu.generate_image(hub_module, tfu.load_style_image('") + std::string(styleImage) + std::string("'))");
+			PyRun_SimpleString(pystring.c_str());
+		}
+
+		return PyLong_FromLong(0);
+	}
 	//helper methods python/c++ interaction
 	static struct PyMethodDef methods[] = {
 		{ "change_scale", change_scale, METH_VARARGS, "test print method"},
@@ -127,6 +187,8 @@ namespace PythonManager {
 		{ "add_game_object", add_game_object, METH_VARARGS, "test print method"},
 		{ "add_model", add_model, METH_VARARGS, "test print method"},
 		{ "get_tags", get_tags, METH_VARARGS, "test print method"},
+		{ "get_cur_image", get_cur_image, METH_VARARGS, "test print method"},
+		{ "make_art", make_art, METH_VARARGS, "test print method"},
 		{ "change_light_pos", change_light_pos, METH_VARARGS, "test print method"},
 		{ NULL, NULL, 0, NULL }
 	};
@@ -225,6 +287,11 @@ namespace PythonManager {
 		PyRun_SimpleString("import sys");
 		PyRun_SimpleString("sys.path.append('.')");
 		PyRun_SimpleString("sys.path.append('./scripts')");
+		PyRun_SimpleString("import tensorflow");
+		PyRun_SimpleString("import tensorflow_hub as hub");
+		PyRun_SimpleString("hub_handle = 'https://tfhub.dev/google/magenta/arbitrary-image-stylization-v1-256/2'");
+		PyRun_SimpleString("hub_module = hub.load(hub_handle)");
+		PyRun_SimpleString("import tensorflow_utils as tfu");
 		//PyRun_SimpleString("sys.path.append('./scripts')");
 		//PyRun_SimpleString("import numpy");
 		//std::vector<std::string> args;

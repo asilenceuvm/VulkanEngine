@@ -42,6 +42,7 @@ public:
 	SwapChainSupportDetails getSwapChainSupport() { return querySwapChainSupport(physicalDevice); }
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	QueueFamilyIndices findPhysicalQueueFamilies() { return findQueueFamilies(physicalDevice); }
+	bool getBlitSupport() { return supportsBlit(physicalDevice); }
 	VkFormat findSupportedFormat(
 	  const std::vector<VkFormat> &candidates, VkImageTiling tiling, VkFormatFeatureFlags features);
 
@@ -97,5 +98,6 @@ private:
 	void hasGflwRequiredInstanceExtensions();
 	bool checkDeviceExtensionSupport(VkPhysicalDevice device);
 	SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device);
+	bool supportsBlit(VkPhysicalDevice device);
 };
 
