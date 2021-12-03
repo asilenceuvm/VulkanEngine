@@ -86,6 +86,12 @@ void Engine::loadGameObjects() {
 	std::shared_ptr<Model> model =
 		Model::createModelFromFile(device, "models/textured_cube.obj", AssetManager::textures["white"]);
 
+	std::shared_ptr<Model> model2 =
+		Model::createModelFromFile(device, "models/misha.obj", AssetManager::textures["white"]);
+
+	std::shared_ptr<Model> model3 =
+		Model::createModelFromFile(device, "models/owl.obj", AssetManager::textures["white"]);
+
 	/*auto gameObj4 = GameObject::createGameObject("apple" + std::to_string(0));
 	gameObj4.model = model;
 	gameObj4.transform.translation = { 0.f, 0.f, 0.f };
@@ -111,12 +117,20 @@ void Engine::loadGameObjects() {
 	gameObjects.push_back(std::move(gameObjCube));
 
 	auto gameObjPlayable = GameObject::createGameObject("player_cube");
-	gameObjPlayable.model = model;
+	gameObjPlayable.model = model3;
 	gameObjPlayable.transform.translation = { -0.5f, 0.5f, 0.f };
 	gameObjPlayable.transform.scale = glm::vec3(0.1f);
 	gameObjPlayable.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.5f, 0.f);
 	gameObjects.push_back(std::move(gameObjPlayable));
+
+	auto gameObjCat = GameObject::createGameObject("cat" + std::to_string(0));
+	gameObjCat.model = model2;
+	gameObjCat.transform.translation = { 0.f, 0.5f, 0.f };
+	gameObjCat.transform.scale = glm::vec3(0.1f);
+	gameObjCat.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+	gameObjCat.particle.angularVelocity = glm::vec3(0.f, -1.25f, 0.f);
+	gameObjects.push_back(std::move(gameObjCat));
 
 	lightPos = glm::vec3(0, 1, 3);
 }
