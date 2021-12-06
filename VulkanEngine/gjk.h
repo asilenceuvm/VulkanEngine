@@ -23,6 +23,10 @@ public:
 		m_vertices = vertices;
 	}
 
+	std::vector<glm::vec3> GetVertices() {
+		return m_vertices;
+	}
+
 	glm::vec3 FindFurthestPoint(glm::vec3 direction) const override
 	{
 		glm::vec3 maxPoint;

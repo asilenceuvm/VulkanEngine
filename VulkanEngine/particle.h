@@ -16,7 +16,7 @@ public:
 	/* --- Physics Data --- */
 	glm::vec3 linearVelocity{ 0.f, 0.f, 0.f };
 	glm::vec3 angularVelocity{ 0.f, 0.f, 0.f };
-	glm::vec3 gravityAcceleration{ 0.f, -0.00001f, 0.f };
+	glm::vec3 gravityAcceleration{ 0.f, 0.f, 0.f };//-0.00001f, 0.f };
 	/* --- Physics Properties --- */
 	float drag = 0.001f;
 	float angular_drag = 0;
@@ -39,9 +39,9 @@ public:
 		this->linearVelocity = initialVelocity;
 		this->angularVelocity = initialAngular;
 		shape.mass = mass;
-		shape.height = 1.f;
-		shape.width = 1.f;
-		shape.depth = 1.f;
+		shape.height = 0.15f;
+		shape.width = 0.15f;
+		shape.depth = 0.15f;
 		calculateBoxInertia(&shape);
 		// Making a box for testing
 	}

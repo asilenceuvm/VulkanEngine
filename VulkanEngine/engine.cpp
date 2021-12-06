@@ -108,7 +108,7 @@ void Engine::loadGameObjects() {
 	gameObj2.particle.angularVelocity = glm::vec3(0.f, 3.f, 0.f);
 	gameObjects.push_back(std::move(gameObj2));*/
 
-	for (int i = 0; i < 5; i++) {
+	/*for (int i = 0; i < 5; i++) {
 		for (int j = 0; j < 5; j++) {
 			auto gameObjFloor = GameObject::createGameObject("floor" + std::to_string(i) + std::to_string(j));
 			gameObjFloor.model = model;
@@ -130,11 +130,11 @@ void Engine::loadGameObjects() {
 	gameObjCube.transform.scale = glm::vec3(0.1f);
 	gameObjCube.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjCube.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObjects.push_back(std::move(gameObjCube));
+	gameObjects.push_back(std::move(gameObjCube));*/
 
 	auto gameObjPlayable = GameObject::createGameObject("player_cube");
 	gameObjPlayable.model = model;
-	gameObjPlayable.transform.translation = { -0.5f, 0.5f, 0.f };
+	gameObjPlayable.transform.translation = { 0.f, -0.5f, 0.f };
 	gameObjPlayable.transform.scale = glm::vec3(0.1f);
 	gameObjPlayable.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
@@ -176,6 +176,17 @@ void Engine::update() {
 	}
 	if (InputManager::keys[GLFW_KEY_D]) {
 		camera.moveCamRight(.05f);
+	}
+	// Get Debug Info
+	if (InputManager::keys[GLFW_KEY_R]) {
+		std::cout << "Debug Positions" << std::endl;
+		for (auto& obj : gameObjects) {
+			std::cout << obj.getTag() << " Vertices" << std::endl;
+			for (auto& colVector : obj.currentWorldSpaceCollider.GetVertices()) // access by reference to avoid copying
+			{
+				std::cout << colVector.x << "," << colVector.y << "," << colVector.z << std::endl;
+			}
+		}
 	}
 	camera.rotateCamera(InputManager::xoffset, InputManager::yoffset, 0.1f);
 	InputManager::xoffset = 0;
