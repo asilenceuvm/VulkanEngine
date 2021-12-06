@@ -108,6 +108,22 @@ void Engine::loadGameObjects() {
 	gameObj2.particle.angularVelocity = glm::vec3(0.f, 3.f, 0.f);
 	gameObjects.push_back(std::move(gameObj2));*/
 
+	for (int i = 0; i < 5; i++) {
+		for (int j = 0; j < 5; j++) {
+			auto gameObjFloor = GameObject::createGameObject("floor" + std::to_string(i) + std::to_string(j));
+			gameObjFloor.model = model;
+			gameObjFloor.transform.translation = { (i * 0.5f) - 1.f, -1.f, (j * 0.5f) - 1.f };
+			gameObjFloor.transform.scale = glm::vec3(0.25f);
+			std::vector<glm::vec3> colliderVectors{ glm::vec3{ -0.25, -0.25, -0.25 }, glm::vec3{ -0.25, -0.25, 0.25 }, glm::vec3{ 0.25, -0.25, 0.25 }, glm::vec3{ 0.25, -0.25, -0.25 },
+											 glm::vec3{ -0.25, 0.25, -0.25 }, glm::vec3{ -0.25, 0.25, 0.25 }, glm::vec3{ 0.25, 0.25, 0.25 }, glm::vec3{ 0.25, 0.25, -0.25 } };
+			gameObjFloor.particle.colliderVectors = colliderVectors;
+			gameObjFloor.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+			gameObjFloor.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
+			gameObjFloor.particle.position_lock = true;
+			gameObjects.push_back(std::move(gameObjFloor));
+		}
+	}
+
 	auto gameObjCube = GameObject::createGameObject("cube" + std::to_string(0));
 	gameObjCube.model = model;
 	gameObjCube.transform.translation = { 0.f, 0.f, 0.f };
@@ -117,19 +133,19 @@ void Engine::loadGameObjects() {
 	gameObjects.push_back(std::move(gameObjCube));
 
 	auto gameObjPlayable = GameObject::createGameObject("player_cube");
-	gameObjPlayable.model = model3;
+	gameObjPlayable.model = model;
 	gameObjPlayable.transform.translation = { -0.5f, 0.5f, 0.f };
 	gameObjPlayable.transform.scale = glm::vec3(0.1f);
 	gameObjPlayable.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.5f, 0.f);
+	gameObjPlayable.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjects.push_back(std::move(gameObjPlayable));
 
 	auto gameObjCat = GameObject::createGameObject("cat" + std::to_string(0));
-	gameObjCat.model = model2;
+	gameObjCat.model = model;
 	gameObjCat.transform.translation = { 0.f, 0.5f, 0.f };
 	gameObjCat.transform.scale = glm::vec3(0.1f);
 	gameObjCat.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
-	gameObjCat.particle.angularVelocity = glm::vec3(0.f, -1.25f, 0.f);
+	gameObjCat.particle.angularVelocity = glm::vec3(0.f, 0.f, 0.f);
 	gameObjects.push_back(std::move(gameObjCat));
 
 	lightPos = glm::vec3(0, 1, 3);
@@ -253,32 +269,35 @@ void Engine::physics() {
 	// Check for collisions
 	broadDetectionPhase();
 	for (auto& obj : gameObjects) {
-		/* 1) --- Calculate External Forces--- 
-		 * Forces such as gravity or objects colliding.
-		 */
-		// Gravity vector
-		glm::vec3 gravityAcceleration{ 0.f, 0.f, 0.f };//-0.000005f, 0.f };
-		// Location of force (Top)
-		glm::vec3 point{ 0.f, obj.particle.shape.width / 2.f, 0.f };
-		glm::vec3 forceExternal = gravityAcceleration;
-		/* 2) --- Calculate Constraint Forces--- 
-		 * Forces that keep an object where it should be. For instance
-		 * this will keep joints together, stop an object from clipping
-		 * into another, etc.
-		 */
-		glm::vec3 forceConstraint{ 0.f, 0.f, 0.f };
-		/* 3) --- Apply Forces and Simulate Motion--- 
-		 * Finally apply the two forces for each object, changing
-		 * based on the mass of the object.
-		 */
-		glm::vec3 force = forceExternal + forceConstraint;
-		obj.particle.computeForceAndTorque(gravityAcceleration, point * 50.f);
-		// Compute the object's accelerations
-		obj.particle.computeLinearAcceleration();
-		obj.particle.computeAngularAcceleration();
-		// Translate and rotate the object
-		obj.transform.translation += obj.particle.linearVelocity;
-		obj.transform.rotation += obj.particle.angularVelocity;
+		if (obj.particle.position_lock) {
+			obj.particle.linearVelocity = glm::vec3{0,0,0};
+		}
+		else {
+			/* 1) --- Calculate External Forces--- 
+			 * Forces such as gravity or objects colliding.
+			 */
+			// Location of force (Top)
+			glm::vec3 point{ 0.f, obj.particle.shape.width / 2.f, 0.f };
+			glm::vec3 forceExternal = obj.particle.gravityAcceleration;
+			/* 2) --- Calculate Constraint Forces--- 
+			 * Forces that keep an object where it should be. For instance
+			 * this will keep joints together, stop an object from clipping
+			 * into another, etc.
+			 */
+			//glm::vec3 forceConstraint{ 0.f, 0.f, 0.f };
+			/* 3) --- Apply Forces and Simulate Motion--- 
+			 * Finally apply the two forces for each object, changing
+			 * based on the mass of the object.
+			 */
+			glm::vec3 force = forceExternal;
+			obj.particle.computeForceAndTorque(obj.particle.gravityAcceleration, point);
+			// Compute the object's accelerations
+			obj.particle.computeLinearAcceleration();
+			obj.particle.computeAngularAcceleration();
+			// Translate and rotate the object
+			obj.transform.translation += obj.particle.linearVelocity;
+			obj.transform.rotation += obj.particle.angularVelocity;
+		}
 	}
 }
 
@@ -344,14 +363,36 @@ void Engine::narrowDetectionPhase(GameObject* obj1, GameObject* obj2) {
 		// So we know if we add the velocity of the other guy it will move it in the expected direction, HOWEVER, this does not
 		// deal with the constraint forces that should also be added so the objects stop having collisions (ie. the sticky issue)
 
-		// Regular force (Add/Subtract velocities)
-		obj1->particle.linearVelocity += ((obj2->particle.linearVelocity / 2.0f) - (obj1->particle.linearVelocity / 2.0f));
+		// Setup
+		glm::vec3 force{ 0.f, 0.f, 0.f };
+		glm::vec3 point{ info1.collisionCentroid.x, info1.collisionCentroid.y, info1.collisionCentroid.z };
 
+		// Regular force (Add/Subtract velocities)
+		force += ((obj2->particle.linearVelocity / 2.0f) - (obj1->particle.linearVelocity / 2.0f));
+
+		//std::cout << constraint.x << "," << constraint.y << "," << constraint.z << std::endl;
+		// 
 		// Constraint force (Make the objects stop touching so we don't have a bunch of collisions and weird velocity bugs)
 		// The easiest way to guarentee objects stop touching is to simply move them in the opposite direction of eachother,
 		// let's try to do this by calculating the normal vector from the centroids of both objects (approximately where they collided).
-		// TODO: This normal seems to go in the wrong direction, maybe we have to use the normal tangent instead?
-		obj1->particle.linearVelocity += glm::normalize(glm::vec3{ std::abs(info1.collisionCentroid.x) - std::abs(info2.collisionCentroid.x), std::abs(info1.collisionCentroid.y) - std::abs(info2.collisionCentroid.y), std::abs(info1.collisionCentroid.z) - std::abs(info2.collisionCentroid.z) }) / 10000.0f;
+		if (obj2->particle.position_lock) {
+			force -= obj1->particle.gravityAcceleration*1.5f;
+		}
+		else {
+			// TODO: Determine if this is even helping
+			glm::vec3 constraint = glm::normalize(glm::vec3{ std::abs(info1.collisionCentroid.x) - std::abs(info2.collisionCentroid.x), std::abs(info1.collisionCentroid.y) - std::abs(info2.collisionCentroid.y), std::abs(info1.collisionCentroid.z) - std::abs(info2.collisionCentroid.z) }) / 7500.0f;
+			if (!isnan(constraint.x)) {
+				force += constraint;
+			}
+			else {
+				force += glm::normalize(glm::vec3{ std::abs(obj1->transform.translation.x) - std::abs(obj2->transform.translation.x), std::abs(obj1->transform.translation.y) - std::abs(obj2->transform.translation.y), std::abs(obj1->transform.translation.z) - std::abs(obj2->transform.translation.z) }) / 7500.0f;
+			}
+		}
+
+		obj1->particle.computeForceAndTorque(force, point);
+		// Compute the object's accelerations
+		obj1->particle.computeLinearAcceleration();
+		//obj1->particle.computeAngularAcceleration();
 
 		/*	glm::vec3 normalizedDirection{ obj1->transform.translation.x - obj2->transform.translation.x, obj1->transform.translation.y - obj2->transform.translation.y, obj1->transform.translation.z - obj2->transform.translation.z };
 		normalizedDirection = glm::normalize(normalizedDirection);

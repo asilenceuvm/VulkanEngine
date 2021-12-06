@@ -16,6 +16,7 @@ public:
 	/* --- Physics Data --- */
 	glm::vec3 linearVelocity{ 0.f, 0.f, 0.f };
 	glm::vec3 angularVelocity{ 0.f, 0.f, 0.f };
+	glm::vec3 gravityAcceleration{ 0.f, -0.00001f, 0.f };
 	/* --- Physics Properties --- */
 	float drag = 0.001f;
 	float angular_drag = 0;
@@ -24,8 +25,8 @@ public:
 	BoxShape shape;
 	/* --- Object Locking ---
 	// 0 = unlocked, 1 = locked */
-	glm::vec3 position_lock{ 0, 0, 0 };
-	glm::vec3 rotation_lock{ 0, 0, 0 };
+	bool position_lock = false;
+	bool rotation_lock = false;
 	/* --- Other Properties --- */
 	glm::vec3 force{ 0.f, 0.f ,0.f };
 	glm::vec3 torque{ 0.f, 0.f ,0.f };
