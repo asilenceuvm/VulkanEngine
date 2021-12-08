@@ -111,10 +111,9 @@ namespace PythonManager {
 	}
 
 	static PyObject* get_tags(PyObject* self, PyObject* args) {
-		PyObject* listObj = PyList_New(Engine::gameObjects.size());
-		for (int i = 0; i < Engine::gameObjects.size(); i++) {
-			PyObject* tag = PyBytes_FromString(Engine::gameObjects[i].getTag().c_str());
-			PyList_SetItem(listObj, i, tag);
+		PyObject* listObj = PyList_New(0);
+		for (auto it = Engine::gameObjects.begin(); it != Engine::gameObjects.end(); it++){
+			PyList_Append(listObj, Py_BuildValue("s", it->getTag().c_str()));
 		}
 		return listObj;
 	}
