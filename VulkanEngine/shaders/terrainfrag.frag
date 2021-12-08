@@ -12,8 +12,8 @@ layout (location = 0) out vec4 outFragColor;
 layout(binding = 2) uniform sampler2D texSampler;
 
 vec3 sampleTerrainLayer() {
-	vec3 fragTexCoord = vec3(inUV, 1);
-	vec3 color = texture(texSampler, inUV).rgb;
+	vec3 fragTexCoord = vec3(inUV / 64, 1);
+	vec3 color = texture(texSampler, inUV * 64).rgb;
 	return color;
 }
 

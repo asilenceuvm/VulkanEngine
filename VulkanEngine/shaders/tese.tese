@@ -42,7 +42,7 @@ void main()
 	vec4 pos2 = mix(gl_in[3].gl_Position, gl_in[2].gl_Position, gl_TessCoord.x);
 	vec4 pos = mix(pos1, pos2, gl_TessCoord.y);
 	// Displace
-	pos.y -= textureLod(displacementMap, outUV, 0.0).r * ubo.displacementFactor;
+	pos.y -= textureLod(displacementMap, outUV, 0.0).r * ubo.displacementFactor * 2;
 	// Perspective projection
 	gl_Position = ubo.projection * ubo.modelview * pos;
 

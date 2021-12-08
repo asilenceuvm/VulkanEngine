@@ -92,7 +92,7 @@ void Engine::getCurrentImage() {
 	VkImageCreateInfo imageCreateCI{};
 	imageCreateCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 	imageCreateCI.imageType = VK_IMAGE_TYPE_2D;
-	imageCreateCI.format = VK_FORMAT_R8G8B8A8_UNORM;
+	imageCreateCI.format = VK_FORMAT_R8G8B8A8_SRGB;
 	imageCreateCI.extent.width = width;
 	imageCreateCI.extent.height = height;
 	imageCreateCI.extent.depth = 1;
@@ -233,7 +233,7 @@ void Engine::getCurrentImage() {
 
 	char* data;
 	vkMapMemory(device.device(), dstImageMemory, 0, VK_WHOLE_SIZE, 0, (void**)&data);
-	data += subResourceLayout.offset;
+	//data += subResourceLayout.offset;
 
 	bool colorSwizzle = false;
 	if (!supportsBlit) {
@@ -339,37 +339,45 @@ void Engine::loadGameObjects() {
 	AssetManager::loadTexture(device, "textures/heightmap.png", "heightmap");
 	//AssetManager::loadTexture(device, "textures/apple.jpg", "apple");
 	AssetManager::loadTexture(device, "textures/sand.jpg", "sand");
+	AssetManager::loadTexture(device, "models/rock/rock.tga", "rock");
 	std::array<std::string, 6> filepaths = {
-		"textures/skybox2/right.png",
-		"textures/skybox2/left.png",
-		"textures/skybox2/top.png",
-		"textures/skybox2/bottom.png",
-		"textures/skybox2/front.png",
-		"textures/skybox2/back.png"
+		"textures/skybox4/right.png",
+		"textures/skybox4/left.png",
+		"textures/skybox4/top.png",
+		"textures/skybox4/bottom.png",
+		"textures/skybox4/front.png",
+		"textures/skybox4/back.png"
 	};
 	AssetManager::loadCubeMap(device, filepaths, "skybox");
 
 	AssetManager::loadModel(device, "backpack", "models/backpack/backpack.obj", "backpack"); 
+	AssetManager::loadModel(device, "rock", "models/rock/rock.obj", "rock"); 
 	//AssetManager::loadModel(device, "apple", "models/apple.obj", "apple"); 
 	AssetManager::loadModel(device, "skybox", "models/textured_cube.obj", "skybox"); 
 
-	auto gameObj = GameObject::createGameObject("room");
+	auto gameObj = GameObject::createGameObject("backpack");
 	gameObj.model = AssetManager::models["backpack"];
-	gameObj.transform.translation = { .0f, .0f, 2.5f };
+	gameObj.transform.translation = { -15.0f, 1.5f, 2.5f };
 	gameObj.transform.scale = glm::vec3(0.5f);
 	gameObjects.push_back(std::move(gameObj));
 
 	auto gameObj1 = GameObject::createGameObject("water");
-	gameObj1.model = Model::generateMesh(device, 400, 400, AssetManager::textures["skybox"]);
-	gameObj1.transform.scale = glm::vec3(0.5f);
-	gameObj1.transform.translation = glm::vec3(-75, -5, -75);
+	gameObj1.model = Model::generateMesh(device, 1600, 1600, AssetManager::textures["skybox"]);
+	gameObj1.transform.scale = glm::vec3(0.1f);
+	gameObj1.transform.translation = glm::vec3(-75, 1, -75);
 	gameObjects.push_back(std::move(gameObj1));
 
 	auto gameObj4 = GameObject::createGameObject("terrain");
 	gameObj4.model = Model::generateTerrain(device, 64, 1.f);
-	gameObj4.transform.translation = glm::vec3(0, 4, 0);
+	gameObj4.transform.translation = glm::vec3(0, 2, 0);
 	gameObjects.push_back(std::move(gameObj4));
 
+	auto gameObj5 = GameObject::createGameObject("rock");
+	gameObj5.model = AssetManager::models["rock"];
+	gameObj5.transform.translation = glm::vec3(-10, 0.2, 10);
+	gameObj5.transform.rotation = glm::vec3(-10, 0, 0);
+	gameObj5.transform.scale = glm::vec3(0.01);
+	gameObjects.push_back(std::move(gameObj5));
 
 	/*for (int i = 0; i < 5; i++) {
 		auto gameObj2 = GameObject::createGameObject("apple" + std::to_string(i));
@@ -385,7 +393,7 @@ void Engine::loadGameObjects() {
 	gameObjects.push_back(std::move(gameObj3));
 
 
-	lightPos = glm::vec3(-40, 20, 100);
+	lightPos = glm::vec3(120, 30, 250);
 
 	updateBuffers();
 }
@@ -418,7 +426,7 @@ void Engine::render() {
 }
 
 void Engine::update() {
-	//PythonManager::runUpdates();
+	PythonManager::runUpdates();
 	camera.setProjection(glm::radians(45.f), renderer.getAspectRatio(), 0.1f, 1000.f);
 	if (InputManager::keys[GLFW_KEY_W]) {
 		camera.moveCamForward(.05f);

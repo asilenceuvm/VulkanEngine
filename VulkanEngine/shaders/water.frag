@@ -23,8 +23,8 @@ void main() {
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), 64);
     vec3 specular = specularStrength * spec * vec3(1,1,1);  
 
-    vec3 watercolor = vec3(0.0, 0.15, 1);
-    float reflectStrength = 0.2;
+    vec3 watercolor = vec3(0.0, 0.33, 0.55);
+    float reflectStrength = 0.1;
     vec3 result = reflectStrength * texture(cubeSampler, R).rgb + watercolor + specular;
 
     outColor = vec4(result, 0.5);

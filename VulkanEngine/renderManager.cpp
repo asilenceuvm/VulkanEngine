@@ -144,6 +144,9 @@ void RenderManager::renderGameObjects(VkCommandBuffer commandBuffer,
 	it = std::find_if(std::begin(Engine::gameObjects), std::end(Engine::gameObjects), [&](GameObject const& obj) { return obj.getTag() == "terrain"; });
 	index = std::distance(Engine::gameObjects.begin(), it);
 	Constants::TesselationUBO tesselationUBO{};
+	
+	tesselationUBO.displacementFactor = 10;
+	tesselationUBO.tessellatedEdgeSize = 0.1;
 
 	tesselationUBO.projection = camera.getProjection();
 	tesselationUBO.modelview = camera.getView() * gameObjects[index].transform.mat4();

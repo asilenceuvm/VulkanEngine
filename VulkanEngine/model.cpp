@@ -228,28 +228,33 @@ float Model::HeightMap::getHeight(uint32_t x, uint32_t y) {
 
 // Generate a terrain quad patch for feeding to the tessellation control shader
 std::unique_ptr<Model> Model::generateTerrain(Device& device, float patchSize, float uvScale) {
-	const uint32_t vertexCount = patchSize * patchSize;
-	Model::Vertex* vertices = new Model::Vertex[vertexCount];
+#define PATCH_SIZE 64
+	const uint32_t vertexCount = PATCH_SIZE * PATCH_SIZE;
+	//Model::Vertex* vertices = new Model::Vertex[vertexCount];
+	std::vector<Model::Vertex> vertices;
+	vertices.resize(vertexCount);
+
 
 	const float wx = 2.0f;
 	const float wy = 2.0f;
 
-	for (auto x = 0; x < patchSize; x++) {
-		for (auto y = 0; y < patchSize; y++) {
-			uint32_t index = (x + y * patchSize);
-			vertices[index].position[0] = x * wx + wx / 2.0f - (float)patchSize * wx / 2.0f;
+	for (auto x = 0; x < PATCH_SIZE; x++) {
+		for (auto y = 0; y < PATCH_SIZE; y++) {
+			uint32_t index = (x + y * PATCH_SIZE);
+			vertices[index].position[0] = x * wx + wx / 2.0f - (float)PATCH_SIZE * wx / 2.0f;
 			vertices[index].position[1] = 0.0f;
-			vertices[index].position[2] = y * wy + wy / 2.0f - (float)patchSize * wy / 2.0f;
-			vertices[index].texCoord = glm::vec2((float)x / patchSize, (float)y / patchSize) * uvScale;
+			vertices[index].position[2] = y * wy + wy / 2.0f - (float)PATCH_SIZE * wy / 2.0f;
+			vertices[index].texCoord = glm::vec2((float)x / PATCH_SIZE, (float)y / PATCH_SIZE);
+		//	vertices[index].texCoord = glm::vec2(x % 4, y % 4);
 			vertices[index].color = glm::vec3(1);
 			vertices[index].normal = glm::vec3(1);
 		}
 	}
 
 	// Calculate normals from height map using a sobel filter
-	Model::HeightMap heightMap(device, "textures/heightmap.png", patchSize);
-	for (auto x = 0; x < patchSize; x++) {
-		for (auto y = 0; y < patchSize; y++) {
+	Model::HeightMap heightMap(device, "textures/heightmap.png", PATCH_SIZE);
+	for (auto x = 0; x < PATCH_SIZE; x++) {
+		for (auto y = 0; y < PATCH_SIZE; y++) {
 			float heights[3][3];
 			for (auto hx = -1; hx <= 1; hx++) {
 				for (auto hy = -1; hy <= 1; hy++) {
@@ -263,28 +268,29 @@ std::unique_ptr<Model> Model::generateTerrain(Device& device, float patchSize, f
 			normal.z = heights[0][0] + 2.0f * heights[1][0] + heights[2][0] - heights[0][2] - 2.0f * heights[1][2] - heights[2][2];
 			normal.y = 0.25f * sqrt(1.0f - normal.x * normal.x - normal.z * normal.z);
 
-			vertices[x + y * (int)patchSize].normal = glm::normalize(normal * glm::vec3(2.0f, 1.0f, 2.0f));
+			vertices[x + y * (int)PATCH_SIZE].normal = glm::normalize(normal * glm::vec3(2.0f, 1.0f, 2.0f));
 		}
 	}
 
 	// Indices
-	const uint32_t w = (patchSize - 1);
+	const uint32_t w = (PATCH_SIZE - 1);
 	const uint32_t indexCount = w * w * 4;
 	uint32_t* indices = new uint32_t[indexCount];
 	for (auto x = 0; x < w; x++) {
 		for (auto y = 0; y < w; y++) {
 			uint32_t index = (x + y * w) * 4;
-			indices[index] = (x + y * patchSize);
-			indices[index + 1] = indices[index] + patchSize;
+			indices[index] = (x + y * PATCH_SIZE);
+			indices[index + 1] = indices[index] + PATCH_SIZE;
 			indices[index + 2] = indices[index + 1] + 1;
 			indices[index + 3] = indices[index] + 1;
 		}
 	}
 	Model::Geometry geometry;
-	geometry.vertices = std::vector<Model::Vertex>(vertices, vertices + vertexCount);
+	//geometry.vertices = std::vector<Model::Vertex>(vertices, vertices + vertexCount);
+	geometry.vertices = vertices;
 	geometry.indices = std::vector<uint32_t>(indices, indices + indexCount);
 
-	delete[] vertices;
+	//delete[] vertices;
 	delete[] indices;
 
 	return std::make_unique<Model>(device, geometry, AssetManager::textures["sand"]);
