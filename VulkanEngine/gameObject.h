@@ -52,9 +52,10 @@ public:
 		std::vector<glm::vec3> worldSpaceColliderVectors;
 		glm::mat4 mat = transform.mat4();
 		//std::cout << "Start Cotllider" << std::endl;
-		for (auto& colliderVector : particle.colliderVectors) // access by reference to avoid copying
+		Model& m = *model.get();
+		for (auto& colliderVector : m.getGeometry().vertices)// particle.colliderVectors) // access by reference to avoid copying
 		{
-			glm::vec4 newTransform = glm::vec4(transform.translation.x + colliderVector.x, transform.translation.y + colliderVector.y, transform.translation.z + colliderVector.z, 1) * mat;
+			glm::vec4 newTransform = glm::vec4(transform.translation.x + colliderVector.position.x, transform.translation.y + colliderVector.position.y, transform.translation.z + colliderVector.position.z, 1) * mat;
 			worldSpaceColliderVectors.push_back(glm::vec3 (newTransform.x, newTransform.y, newTransform.z));
 			//std::cout << newTransform.x << "," << newTransform.y << "," << newTransform.z << std::endl;
 			//worldSpaceColliderVectors.push_back(glm::vec3{ colliderVector.x + transform.translation.x, colliderVector.y + transform.translation.y, colliderVector.z + transform.translation.z });

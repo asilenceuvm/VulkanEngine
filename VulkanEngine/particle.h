@@ -18,10 +18,10 @@ public:
 	glm::vec3 angularVelocity{ 0.f, 0.f, 0.f };
 	glm::vec3 gravityAcceleration{ 0.f, 0.f, 0.f };//-0.00001f, 0.f };
 	/* --- Physics Properties --- */
-	float drag = 0.001f;
+	float drag = 1.f;
 	float angular_drag = 0;
-	std::vector<glm::vec3> colliderVectors { glm::vec3{ -0.1, -0.1, -0.1 }, glm::vec3{ -0.1, -0.1, 0.1 }, glm::vec3{ 0.1, -0.1, 0.1 }, glm::vec3{ 0.1, -0.1, -0.1 },
-										     glm::vec3{ -0.1, 0.1, -0.1 }, glm::vec3{ -0.1, 0.1, 0.1 }, glm::vec3{ 0.1, 0.1, 0.1 }, glm::vec3{ 0.1, 0.1, -0.1 } };
+	//std::vector<glm::vec3> colliderVectors { glm::vec3{ -0.1, -0.1, -0.1 }, glm::vec3{ -0.1, -0.1, 0.1 }, glm::vec3{ 0.1, -0.1, 0.1 }, glm::vec3{ 0.1, -0.1, -0.1 },
+	//									     glm::vec3{ -0.1, 0.1, -0.1 }, glm::vec3{ -0.1, 0.1, 0.1 }, glm::vec3{ 0.1, 0.1, 0.1 }, glm::vec3{ 0.1, 0.1, -0.1 } };
 	BoxShape shape;
 	/* --- Object Locking ---
 	// 0 = unlocked, 1 = locked */
@@ -31,7 +31,7 @@ public:
 	glm::vec3 force{ 0.f, 0.f ,0.f };
 	glm::vec3 torque{ 0.f, 0.f ,0.f };
 	/* --- Numbers to Change for Realism --- */
-	float dragMultiplier = 30.f;
+	float dragMultiplier = 0.1f;
 	float gravityMultipler = 0.000005f;
 	
 
@@ -57,7 +57,7 @@ public:
 		this->force = force;
 		// point is the "arm vector" that goes from the center of mass to the point of force application
 		// That is to say {0,0,0} would be the center of mass, {shape.width / 2.f, shape.height / 2.f, shape.depth / 2.f} would be a corner
-		torque = glm::cross(force, point);
+		this->torque = glm::cross(force, point);
 		//std::cout << glm::to_string(torque) << std::endl;
 	}
 
@@ -68,6 +68,7 @@ public:
 
 	void computeAngularAcceleration() {
 		glm::vec3 angularAcceleration{ torque.x / shape.momentOfInertia, torque.y / shape.momentOfInertia, torque.z / shape.momentOfInertia };
+		//glm::vec3 angularAcceleration{ torque.x, torque.y, torque.z };
 		angularVelocity += angularAcceleration * dragMultiplier;
 	}
 

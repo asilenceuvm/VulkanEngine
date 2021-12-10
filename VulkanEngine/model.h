@@ -34,6 +34,7 @@ public:
 		void loadModel(const std::string& filepath);
 	};
 
+	Geometry geo;
 
 	Model(Device &device, const Model::Geometry& geometry, std::shared_ptr<Texture> texture);
 	~Model();
@@ -46,6 +47,7 @@ public:
 	void draw(VkCommandBuffer commandBuffer);
 
 	static std::unique_ptr<Model> createModelFromFile(Device& device, const std::string& filepath, std::shared_ptr<Texture> texture);
+	Geometry getGeometry();
 
 	std::shared_ptr<Texture> getTexture() { return texture; }
 private:

@@ -26,6 +26,7 @@ struct std::hash<Model::Vertex> {
 Model::Model(Device& device, const Model::Geometry& geometry, std::shared_ptr<Texture> texture) : device{ device }, texture{ texture } {
 	createVertexBuffers(geometry.vertices);
 	createIndexBuffers(geometry.indices);
+	geo = geometry;
 }
 Model::~Model() {}
 
@@ -36,6 +37,10 @@ void Model::draw(VkCommandBuffer commandBuffer) {
 	else {
 		vkCmdDraw(commandBuffer, vertexCount, 1, 0, 0);
 	}
+}
+
+Model::Geometry Model::getGeometry() {
+	return geo;
 }
 
 void Model::bind(VkCommandBuffer commandBuffer) {
