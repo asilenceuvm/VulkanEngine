@@ -241,25 +241,35 @@ void Engine::update() {
 		}
 	}
 	if (InputManager::keys[GLFW_KEY_2]) {
-		// Demo 2 - Cannonball
+		// Demo 2 - Cannonball pt 1
 		for (auto& obj : gameObjects) {
 			if (obj.getTag() == "cannonball") {
-				obj.particle.linearVelocity = glm::vec3(0.012f, 0.015f, 0.f);
+				obj.particle.linearVelocity = glm::vec3(0.009f, 0.014f, 0.f);
 				obj.particle.gravityAcceleration = glm::vec3(0.f, -0.0001f, 0.f);
-				obj.particle.angularVelocity = glm::vec3(0.f, 1.f, 1.f);
+				obj.particle.angularVelocity = glm::vec3(0.f, -1.125f/2.f, -1.125f);
 			}
 		}
 	}
 	if (InputManager::keys[GLFW_KEY_3]) {
-		// Demo 2 - Cannonball
+		// Demo 2 - Cannonball pt 2
+		for (auto& obj : gameObjects) {
+			if (obj.getTag() == "cannonball") {
+				obj.particle.linearVelocity = glm::vec3(-0.009f, 0.014f, 0.f);
+				obj.particle.gravityAcceleration = glm::vec3(0.f, -0.0001f, 0.f);
+				obj.particle.angularVelocity = glm::vec3(0.f, -1.125f / 2.f, -1.125f);
+			}
+		}
+	}
+	if (InputManager::keys[GLFW_KEY_4]) {
+		// Demo 3 - Drop pt 1
 		for (auto& obj : gameObjects) {
 			if (obj.getTag() == "1") {
 				obj.particle.gravityAcceleration = glm::vec3(0.f, -0.00005f, 0.f);
 			}
 		}
 	}
-	if (InputManager::keys[GLFW_KEY_4]) {
-		// Demo 2 - Cannonball
+	if (InputManager::keys[GLFW_KEY_5]) {
+		// Demo 3 - Drop pt 2
 		for (auto& obj : gameObjects) {
 			if (obj.getTag() == "3") {
 				obj.particle.gravityAcceleration = glm::vec3(0.f, -0.00005f, 0.f);
@@ -395,6 +405,12 @@ void Engine::physics() {
 			obj.particle.computeLinearAcceleration();
 			obj.particle.computeAngularAcceleration();
 			// Translate and rotate the object
+			if (obj.getTag() == "cannonball" && obj.transform.translation.y < -0.75f) {
+				obj.particle.angularVelocity = glm::vec3(0.f,0.f,0.f);
+				obj.particle.linearVelocity = glm::vec3(0.f, 0.f, 0.f);
+				obj.particle.gravityAcceleration = glm::vec3(0.f, 0.f, 0.f);
+				obj.transform.translation = glm::vec3(obj.transform.translation.x, -0.75f, obj.transform.translation.z);
+			}
 			obj.transform.translation += obj.particle.linearVelocity;
 			obj.transform.rotation += obj.particle.angularVelocity;
 		}
